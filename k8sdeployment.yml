@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscriptionmanagersvc-app
+  namespace: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: subscriptionmanagersvc-app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: subscriptionmanagersvc-app
+    spec:
+      containers:
+      - image: 893546139438.dkr.ecr.us-east-1.amazonaws.com/devcloud:subscriptionmanagersvc
+        imagePullPolicy: Always
+        name: subscriptionmanagersvc-app
+# Constrain the container as per https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/
+        resources:
+          limits:
+            memory: 48Mi
+          requests:
+            memory: 48Mi
+        ports:
+          - containerPort: 8085
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 8085
+          timeoutSeconds: 5
+          initialDelaySeconds: 60
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8085
+          timeoutSeconds: 5
+          initialDelaySeconds: 60
+      terminationGracePeriodSeconds: 60
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: subscriptionmanagersvc-svc
+  namespace: platform
+spec:
+  ports:
+    - port: 80
+      targetPort: 8085
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: subscriptionmanagersvc-app

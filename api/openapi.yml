@@ -44,10 +44,16 @@ components:
       title: API Object that contains details of a subscription plan.
       type: object
       properties:
-        code:
+        id:
           type: integer
-        message:
+        name:
           type: string
+        description:
+          type: string
+        price:
+          type: number
+        recurrence:
+          type: integer
     ListOfAPlans:
       type: object
       properties:

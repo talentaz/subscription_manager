@@ -1,0 +1,7 @@
+  driver: postgres
+  host: dws-dev.c9tezqkfpvxn.us-east-1.rds.amazonaws.com
+  port: 5432
+  DBUsername: submgr
+  DBName: postgres
+  DBSchema: subscription
+  DBPassword: jw8s0F4
