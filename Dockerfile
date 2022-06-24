@@ -8,6 +8,7 @@ COPY models /go/src/models
 COPY util /go/src/util
 COPY main.go /go/src
 COPY go.mod /go/src
+COPY subscription_manager.yaml /go/src
 
 ENV CGO_ENABLED=0
 RUN go get subscriptionManager
