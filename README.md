@@ -14,16 +14,16 @@ To accept payments the module will use [Stripe Checkout](https://stripe.com/docs
 
 ## Pricing Component
 
-** TO BE COMPLETED AFTER THE PLANS COMPONENT IS INTEGRATED WITH STRIPE.COM **
+**TO BE COMPLETED AFTER THE PLANS COMPONENT IS INTEGRATED WITH STRIPE.COM**
 
 ## Plans Component - Frontend
 **What needs to be done**
 1. In officekube portal repo modify the code of the pricing.tsx component to handle the logic of a user switching from one plan to another as follows:
    - The component should disable the button Sign Up button for the plan that the user is currently on. To determine what the current plan is the component should call an API endpoint of the billing service GET /plans/current at the time of its loading.
+   - Replace button Notify Me for the plan Solo with the button SIGN UP.
    - When the user clicks on Sign Up button of any other plan a Switch Plan dialog should pop up (refer to the design here https://www.figma.com/file/vDqU6NBTspvomTQGN4nel0/3D-Workspace-(Community)?node-id=437%3A490). The dialog should be created using Syncfusion React library - https://ej2.syncfusion.com/react/documentation/dialog/getting-started/).
-
-** Resume after reviewing the stripe docs **
-
+   - In the dialog when the user clicks button Switch make a GET call to the endpoint /payments/checkout of the subscription manager backend (see below) and pass a query parameter named price_id with the value that depends on which button SIGN UP has been clicked by the user before they got to the dialog. For the plan Enthusiast that value should be set "free", for the plan Solo it should be "price_1LECZyKUSkDFrC1EroX3h7NW".
+   - If the user clicked Cancel simply return them back to the Plans page.
 
 ## Plans Component - Backend
 **What needs to be done**
@@ -61,8 +61,8 @@ openapi-generator-cli generate --package-name workspaceEngine -g go-gin-server -
 1. Avoid hard-coding service configuration (e.g. db connection parameters). The service configuration should be persisted in a YAML file subscription_manager.yml.
 
 
-### 2. **Endpoint GET /payments/create-checkout-session**
-Use the [quickstart guide](https://stripe.com/docs/checkout/quickstart) for the Stripe Checkout integration to add an endpoint /payments/create-checkout-session and its implementation.
+### 2. **Endpoint GET /payments/checkout**
+Use the [quickstart guide](https://stripe.com/docs/checkout/quickstart) for the Stripe Checkout integration to add an endpoint /payments/checkout and its implementation.
 When doing so:
   - **Make sure to add the endpoint to the module's openapi.yml first.** The endpoint should receive a string query parameter named price_id.
   - Implement the mentioned in the guide function createCheckoutSession in a separate file **go/api_payments_checkout.go** and using the **GIN web framework, not the net/http module**. 
@@ -72,3 +72,5 @@ When doing so:
     - **Define a product to sell**. For the parameter Price use the valie of the query parameter price_id.
     - **Choose the mode**. Use the mode subscription.
     - **Supply success and cancel URLs**. See the note for **Create a Checkout Session** above.
+
+**TO BE COMPLETED**: add logic of switching between plans (i.e. handling a case if the previous subscription/plan needs to be cancelled first and the case when the user switches to/from the free plan).
