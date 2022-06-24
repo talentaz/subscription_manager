@@ -35,7 +35,8 @@ The service is based on the following stack:
 - DB Backend: PostgreSQL
 - Code Generator: Open API Code Generator
 
-1. **Endpoint GET /plans**, as a part of this assignment implement /plans  (refer [openapi.yml](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/blob/main/api/openapi.yml)). Assume that all available plans are stored in a table AvailablePlans persisted in the PostgreSQL db to which the service has read/write access.
+### 1. **Endpoint GET /plans**
+As a part of this assignment implement /plans  (refer [openapi.yml](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/blob/main/api/openapi.yml)). Assume that all available plans are stored in a table AvailablePlans persisted in the PostgreSQL db to which the service has read/write access.
 The service should make a call into the DB and retrieve all records from the mentioned table where field active is equal to "true". The table AbailablePlans has the following structure:
 
 - id int primary key auto incremental
@@ -59,8 +60,15 @@ openapi-generator-cli generate --package-name workspaceEngine -g go-gin-server -
 1. Implement the endpoint GET /plans using Gin Web Framework and GORM ORM (for access to DB).
 1. Avoid hard-coding service configuration (e.g. db connection parameters). The service configuration should be persisted in a YAML file subscription_manager.yml.
 
-2. ** Endpoint /create-checkout-session **. Use the [quickstart guide](https://stripe.com/docs/checkout/quickstart) for the Stripe Checkout integration to add an endpoint /payments/create-checkout-session and its implementation.
+
+### 2. **Endpoint GET /payments/create-checkout-session**
+Use the [quickstart guide](https://stripe.com/docs/checkout/quickstart) for the Stripe Checkout integration to add an endpoint /payments/create-checkout-session and its implementation.
 When doing so:
-- ** Make sure to add the endpoint to the module's openapi.yml first. **
-- Implement the mentioned in the guide function createCheckoutSession in a separate file go/api_payments_checkout.go and using the GIN web framework (not the net/http module).
-** Resume using the quickstart **
+  - **Make sure to add the endpoint to the module's openapi.yml first.** The endpoint should receive a string query parameter named price_id.
+  - Implement the mentioned in the guide function createCheckoutSession in a separate file **go/api_payments_checkout.go** and using the **GIN web framework, not the net/http module**. 
+    - **Set up the server**. Use this for stripe.Key
+    `sk_test_51LECU4KUSkDFrC1EovIjSi4jNsHRwz3eT8CggtBRBfPtLORVIMd7Md1sDxDe71lGvO0AR1bMJXO6uNbxDFFru4Yx00dkzMY092`
+    - **Create a Checkout Session**. The function should extract from the gin context a value of the price_id parameter and use it as per the guide. In code of the function do not use the variable domain and instead populate parameters SuccessURL and CancelURL with values of the config parameters with the same names (SuccessURL and CancelURL)
+    - **Define a product to sell**. For the parameter Price use the valie of the query parameter price_id.
+    - **Choose the mode**. Use the mode subscription.
+    - **Supply success and cancel URLs**. See the note for **Create a Checkout Session** above.
