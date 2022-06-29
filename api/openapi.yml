@@ -4,7 +4,7 @@ info:
   title: 'Subscription Manager'
   version: 0.0.1
 servers:
-  - url: http://localhost/dev/api
+  - url: http://localhost/api
     description: Development server
 paths:
   /health:
@@ -38,6 +38,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APlan'
+  /payments/checkout:
+    get:
+      tags:
+      - Payments Checkout
+      summary: Returns an stripe checkout page."
+      parameters:
+      - name: "priceID"
+        in: "query"
+        required: true
+        description: "insert price id"
+        content:
+          application/json:  
+            schema:
+              type: object
+              properties:
+                price_id:
+                  type: string
+      responses:
+        "200":
+          description: "Returns an stripe checkout page"
 components:
   schemas:
     APlan:

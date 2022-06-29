@@ -13,7 +13,8 @@ type Config struct {
 	DBUsername string `yaml:"DBUsername"`
 	DBName     string `yaml:"DBName"`
 	DBPassword string `yaml:"DBPassword"`
-	DBSchema string `yaml:"DBSchema"`
+	DBSchema   string `yaml:"DBSchema"`
+	StripeAPI  string `yaml:"StripeAPI"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
