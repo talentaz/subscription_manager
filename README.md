@@ -73,4 +73,18 @@ When doing so:
     - **Choose the mode**. Use the mode subscription.
     - **Supply success and cancel URLs**. See the note for **Create a Checkout Session** above.
 
+
+### 3. **Endpoint POST /payments/stripewebhook**
+Use the [stripe guide](https://stripe.com/docs/payments/checkout/fulfill-orders) for the Stripe Checkout integration to add an endpoint /payments/stripewebhook and its implementation.
+When doing so:
+  - **Make sure to add the endpoint to the module's openapi.yml first.** 
+  - **Create your event handler**. Implement the mentioned in the guide function for the /webhook in a separate file **go/api_payments_stripewebhook.go** and using the **GIN web framework, not the net/http module**. 
+    - **Verify events came from Stripe**. The value for the variable endpointSecret should be loaded from the service's configuration file.
+    - **Define a product to sell**. For the parameter Price use the valie of the query parameter price_id.
+    - **Fullfill the order**. The function FulfillOrder will be empty for now.
+
+
+### 3. **Function FulfillOrder**
+**TO BE COMPLETED**. Need to think about the link to the account service and db design.
+
 **TO BE COMPLETED**: add logic of switching between plans (i.e. handling a case if the previous subscription/plan needs to be cancelled first and the case when the user switches to/from the free plan).
