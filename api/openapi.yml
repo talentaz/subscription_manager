@@ -44,17 +44,13 @@ paths:
       - Payments Checkout
       summary: Returns an stripe checkout page."
       parameters:
-      - name: "priceID"
+      - name: "price_id"
         in: "query"
         required: true
-        description: "insert price id"
-        content:
-          application/json:  
-            schema:
-              type: object
-              properties:
-                price_id:
-                  type: string
+        description: "set price id"
+        example: price_1LECZyKUSkDFrC1EroX3h7NW
+        schema:
+          type: string
       responses:
         "200":
           description: "Returns an stripe checkout page"
