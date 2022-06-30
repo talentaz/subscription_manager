@@ -54,6 +54,14 @@ paths:
       responses:
         "200":
           description: "Returns an stripe checkout page"
+  /payments/stripewebhook:
+    post:
+      tags:
+      - Payments Stripewebhook
+      summary: Return stripe webhook page."
+      responses:
+        "200":
+          description: "The response includes a json payload that represents an instance of APlan."
 components:
   schemas:
     APlan:
