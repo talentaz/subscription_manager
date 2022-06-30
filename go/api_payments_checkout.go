@@ -19,26 +19,18 @@ import (
 	"github.com/stripe/stripe-go/v72/checkout/session"
 )
 
-type Price struct {
-	PriceID string `json:"price_id"`
-}
-
 func Checkout(c *gin.Context) {
-
-	//get request parameters
-	json := Price{}
-	c.BindJSON(&json)
-	price_id := json.PriceID
-	log.Printf("%v", price_id)
-
+	//get requst price id
+	price_id := c.Query("price_id")
+	log.Printf(price_id)
 	//get stripe api key
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
-	stripe.Key = config.StripeAPI
-
-	domain := "http://localhost:4242"
+	stripe.Key = config.Stripe.StripeAPI
+	CancelURL := config.Stripe.CancelURL
+	SuccessURL := config.Stripe.SuccessURL
 
 	//create checkout session
 	params := &stripe.CheckoutSessionParams{
@@ -49,16 +41,16 @@ func Checkout(c *gin.Context) {
 			},
 		},
 		Mode:       stripe.String("subscription"),
-		SuccessURL: stripe.String(domain + "?success=true"),
-		CancelURL:  stripe.String(domain + "?canceled=true"),
+		SuccessURL: stripe.String(CancelURL),
+		CancelURL:  stripe.String(SuccessURL),
 	}
 	s, err := session.New(params)
 	if err != nil {
 		log.Println(err)
 	} else {
-		// c.JSON(http.StatusOK, gin.H{
-		// 	"checkoutURL": s.URL,
-		// })
-		c.Redirect(http.StatusFound, s.URL)
+		c.JSON(http.StatusOK, gin.H{
+			"checkoutURL": s.URL,
+		})
+		// c.Redirect(http.StatusFound, s.URL)
 	}
 }
