@@ -86,9 +86,9 @@ var routes = Routes{
 	},
 
 	{
-		"Checkout",
+		"PaymentsCheckoutGet",
 		http.MethodGet,
 		"/api/payments/checkout",
-		Checkout,
+		PaymentsCheckoutGet,
 	},
 }
