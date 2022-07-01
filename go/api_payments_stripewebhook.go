@@ -45,7 +45,7 @@ func PaymentsStripewebhookPost(c *gin.Context) {
 	fmt.Fprintf(os.Stdout, "Got body: %s\n", body)
 	// Pass the request body and Stripe-Signature header to ConstructEvent, along with the webhook signing key
 	// You can find your endpoint's secret in your webhook settings
-	endpointSecret := "whsec_73b5bd351e4f441c19178ff6389a0a3b368d375b8aa31d65fa68d141035d2c0b"
+	endpointSecret := config.Stripe.EndpointSecret
 	event, err := webhook.ConstructEvent(body, c.Request.Header.Get("Stripe-Signature"), endpointSecret)
 
 	if err != nil {

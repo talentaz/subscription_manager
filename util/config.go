@@ -20,9 +20,10 @@ type Config struct {
 		DBSchema   string `yaml:"DBSchema"`
 	} `yaml:"Database"`
 	Stripe struct {
-		StripeAPI  string `yaml:"StripeAPI"`
-		CancelURL  string `yaml:"CancelURL"`
-		SuccessURL string `yaml:"SuccessURL"`
+		StripeAPI      string `yaml:"StripeAPI"`
+		CancelURL      string `yaml:"CancelURL"`
+		SuccessURL     string `yaml:"SuccessURL"`
+		EndpointSecret string `yaml:"EndpointSecret"`
 	} `yaml:"Stripe"`
 }
 
