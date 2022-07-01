@@ -41,13 +41,14 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			},
 		},
 		Mode:       stripe.String("subscription"),
-		SuccessURL: stripe.String(CancelURL),
-		CancelURL:  stripe.String(SuccessURL),
+		SuccessURL: stripe.String(SuccessURL),
+		CancelURL:  stripe.String(CancelURL),
 	}
 	s, err := session.New(params)
 	if err != nil {
 		log.Println(err)
 	} else {
+		log.Println(s.URL)
 		// c.JSON(http.StatusOK, gin.H{
 		// 	"checkoutURL": s.URL,
 		// })
