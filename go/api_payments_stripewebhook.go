@@ -66,10 +66,8 @@ func PaymentsStripewebhookPost(c *gin.Context) {
 		// Fulfill the purchase...
 		FulfillOrder(session)
 	}
-	// w.WriteHeader(http.StatusOK)
-	// })
-	// c.Status(http.StatusOK)
-	c.JSON(http.StatusOK, gin.H{})
+	c.Status(http.StatusOK)
+	// c.JSON(http.StatusOK, gin.H{})
 }
 
 func FulfillOrder(session stripe.CheckoutSession) {

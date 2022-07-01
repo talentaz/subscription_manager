@@ -13,7 +13,6 @@ Database:
   # DBPassword: jw8s0F4
 Stripe:
   StripeAPI: sk_test_51LECU4KUSkDFrC1EovIjSi4jNsHRwz3eT8CggtBRBfPtLORVIMd7Md1sDxDe71lGvO0AR1bMJXO6uNbxDFFru4Yx00dkzMY092
-  # StripeAPI: sk_test_51Kd24KI1ALVfJU3i21D0z6g6qhlkrfOJqMM5VbkPfYTBu5PoIaa3j7HaQvkeR75wtKil5k3rIAE5WBafdfXJZb5p00t2meOqwt
   CancelURL: http://localhost:4242/cancel
   SuccessURL: http://localhost:4242/success
   
