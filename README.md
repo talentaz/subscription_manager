@@ -12,6 +12,27 @@ From the user perspective, the module will have the following pages:
 
 To accept payments the module will use [Stripe Checkout](https://stripe.com/docs/payments/checkout) integration method (from the [3 available](https://stripe.com/docs/payments/online-payments)).
 
+## Database Structure
+The service has the following table structure:
+```plantuml
+object Transactions {
+  id: uuid
+  userId: uuid
+  priceId
+  userPlanId
+  status: varchar(5)
+}
+
+object UserPlans {
+  id: uuid
+  userId: uuid
+  planId: int4
+}
+
+
+Transactions --> UserPlans
+```
+
 ## Pricing Component
 
 **TO BE COMPLETED AFTER THE PLANS COMPONENT IS INTEGRATED WITH STRIPE.COM**
