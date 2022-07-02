@@ -15,22 +15,31 @@ To accept payments the module will use [Stripe Checkout](https://stripe.com/docs
 ## Database Structure
 The service has the following table structure:
 ```plantuml
-object Transactions {
+object transactions {
   id: uuid
   userId: uuid
   priceId
   userPlanId
-  status: varchar(5)
+  status: varchar(50)
 }
 
-object UserPlans {
+object user_plans {
   id: uuid
   userId: uuid
   planId: int4
+  status: varchar(50)
 }
 
+object available_plans {
+  id: int4
+  name: varchar(50)
+  description: varchar(250)
+  price: numeric
+  recurrence: int4
+}
 
-Transactions --> UserPlans
+transactions "N " --> "1 " user_plans
+user_plans "N " --> "1 " available_plans
 ```
 
 ## Pricing Component
