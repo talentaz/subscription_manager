@@ -4,7 +4,7 @@ info:
   title: 'Subscription Manager'
   version: 0.0.1
 servers:
-  - url: http://localhost/dev/api
+  - url: http://localhost/api
     description: Development server
 paths:
   /health:
@@ -38,6 +38,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APlan'
+  /payments/checkout:
+    get:
+      tags:
+      - Payments Checkout
+      summary: Returns an stripe checkout page."
+      parameters:
+      - name: "price_id"
+        in: "query"
+        required: true
+        description: "set price id"
+        example: price_1LECZyKUSkDFrC1EroX3h7NW
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "Returns an stripe checkout page"
+  /payments/stripewebhook:
+    post:
+      tags:
+      - Payments Stripewebhook
+      summary: Return stripe webhook page."
+      responses:
+        "200":
+          description: "The response includes a json payload that represents an instance of APlan."
 components:
   schemas:
     APlan:

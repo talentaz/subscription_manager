@@ -53,7 +53,7 @@ func NewRouter() *gin.Engine {
 
 // Index is the index handler.
 func Index(c *gin.Context) {
-	c.String(http.StatusOK, "Hello from the Subscription Manager!")
+	c.String(http.StatusOK, "Hello World!")
 }
 
 var routes = Routes{
@@ -69,6 +69,20 @@ var routes = Routes{
 		http.MethodGet,
 		"/api/health",
 		HealthGet,
+	},
+
+	{
+		"PaymentsCheckoutGet",
+		http.MethodGet,
+		"/api/payments/checkout",
+		PaymentsCheckoutGet,
+	},
+
+	{
+		"PaymentsStripewebhookPost",
+		http.MethodPost,
+		"/api/payments/stripewebhook",
+		PaymentsStripewebhookPost,
 	},
 
 	{

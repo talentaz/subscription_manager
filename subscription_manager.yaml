@@ -1,7 +1,20 @@
-  driver: postgres
-  host: dws-dev.c9tezqkfpvxn.us-east-1.rds.amazonaws.com
+Server:
+  host: 127.0.0.1
+  # host: dws-dev.c9tezqkfpvxn.us-east-1.rds.amazonaws.com
   port: 5432
-  DBUsername: submgr
-  DBName: postgres
+Database:
+  driver: postgres
+  DBUsername: postgres
   DBSchema: subscription
-  DBPassword: jw8s0F4
+  DBName: test_sub
+  DBPassword: 1234
+  # DBUsername: submgr
+  # DBName: postgres
+  # DBPassword: jw8s0F4
+Stripe:
+  StripeAPI: sk_test_51LECU4KUSkDFrC1EovIjSi4jNsHRwz3eT8CggtBRBfPtLORVIMd7Md1sDxDe71lGvO0AR1bMJXO6uNbxDFFru4Yx00dkzMY092
+  CancelURL: http://localhost:4242/cancel
+  SuccessURL: http://localhost:4242/success
+  EndpointSecret: whsec_73b5bd351e4f441c19178ff6389a0a3b368d375b8aa31d65fa68d141035d2c0b
+  
+  
