@@ -6,6 +6,9 @@ info:
 servers:
   - url: http://localhost/api
     description: Development server
+security:
+  - oauth: [jhipster, email, profile]
+  - openId: [jhipster, email, profile]    
 paths:
   /health:
     get:
@@ -85,3 +88,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/APlan'
+  securitySchemes:
+    oauth:
+      type: oauth2
+      description: OAuth2 authentication with KeyCloak
+      flows:
+        authorizationCode:
+          authorizationUrl: http://localhost/auth/realms/officekube/protocol/openid-connect/auth
+          tokenUrl: http://localhost/auth/realms/officekube/protocol/openid-connect/token
+          # authorizationUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube/protocol/openid-connect/auth
+          # tokenUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube/protocol/openid-connect/token
+          scopes:
+            jhipster: Jhipster specific claims
+            email: Email claims
+            profile: Profile claims
+    openId:
+        type: openIdConnect
+        description: OpenID Connect authentication with KeyCloak
+        #openIdConnectUrl: http://localhost/auth/realms/officekube/.well-known/openid-configuration
+        openIdConnectUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube/.well-known/openid-configuration

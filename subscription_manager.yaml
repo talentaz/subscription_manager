@@ -17,4 +17,13 @@ Stripe:
   SuccessURL: http://localhost:4242/success
   EndpointSecret: whsec_73b5bd351e4f441c19178ff6389a0a3b368d375b8aa31d65fa68d141035d2c0b
   
-  
+Security:
+    oauth2:
+        ClientID: platform-dev
+        #ClientSecret: clientSecret
+        #RedirectURLBase: https://dev.workspacenow.cloud
+        ApiRedirectUrl: http://localhost/dev/api/auth_callback
+        WebRedirectUrl: http://localhost/dev/web/auth_callback
+        UrlBase: http://localhost/dev
+        IssuerUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube
+        Scopes: [openid, email, profile]  
