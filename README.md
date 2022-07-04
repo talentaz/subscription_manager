@@ -18,8 +18,10 @@ The service has the following table structure:
 object transactions {
   id: uuid
   userId: uuid
-  priceId
-  userPlanId
+  priceId: varchar(100)
+  userPlanId: uuid
+  sessionId: varchar(100)
+  customerId: varchar(100)
   status: varchar(50)
 }
 
@@ -37,6 +39,7 @@ object available_plans {
   price: numeric
   recurrence: int4
 }
+
 
 transactions "N " --> "1 " user_plans
 user_plans "N " --> "1 " available_plans
