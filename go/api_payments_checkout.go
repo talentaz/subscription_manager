@@ -21,7 +21,6 @@ import (
 
 func PaymentsCheckoutGet(c *gin.Context) {
 	// Check authentication
-	log.Println("autenticate", IsApiAuthenticated(c))
 	if IsApiAuthenticated(c) > 0 {
 		http.Error(c.Writer, "Failed to authenticate.", http.StatusUnauthorized)
 		return
