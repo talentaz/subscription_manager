@@ -41,6 +41,10 @@ func Init() {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&models.AvailablePlans{})
+	db.AutoMigrate(
+		&models.AvailablePlans{},
+		&models.UserPlans{},
+		&models.Transactions{},
+	)
 	DB = db
 }
