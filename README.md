@@ -31,6 +31,7 @@ object user_plans {
   id: uuid
   userId: uuid
   planId: int4
+  customerId: varchar(100)
   status: varchar(50)
   created_ts: timestamp
   last_modified_ts: timestamp
@@ -42,7 +43,7 @@ object available_plans {
   description: varchar(250)
   price: numeric
   recurrence: int4
-  priceId: varchar(100)  
+  priceId: varchar(100)
 }
 
 
