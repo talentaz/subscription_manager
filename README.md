@@ -139,7 +139,7 @@ When doing so:
    - Pull a record from the table user_plans using user id (use function GetUserId), price_id. If such a record exists and its status is equal to "CURRENT" return http code 208.
 4. In the same handler for the endpoint /payments/checkout right after creating a stripe session but before redirecting a user to s.URL insert code that would perform the following:
    - Pull a record from the table available_plans where priceId = price_id.
-   - If a record from the table user_plans (pulled in step 3) exists update its status to "CHECKOUT" and the field last_modified_ts to current timestamp. Othwerise, create a new record with properly populated fields id (newly generated uuid), userId, planId (plan_id), priceId, created_ts (set to current timestamp), and status (set to CHECKOUT).
+   - If a record from the table user_plans (pulled in step 3) exists update its status to "CHECKOUT", planId, priceId, and the field last_modified_ts to current timestamp. Othwerise, create a new record with properly populated fields id (newly generated uuid), userId, planId (plan_id), priceId, created_ts (set to current timestamp), and status (set to CHECKOUT).
    - Create a new record in the table transactions and populate its fields userId, priceId, sessionId (s.ID), userPlandId (id of the record from the table user_plans), status (CHECKOUT), and created_ts (set to current timestamp).
 5. Modify function FulfillOrder as follows:
    - Using sample code [here](https://stripe.com/docs/payments/checkout/custom-success-page), extract customer ID from the stripe session.
