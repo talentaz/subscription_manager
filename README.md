@@ -52,17 +52,24 @@ user_plans "N " --> "1 " available_plans
 ```
 
 ## Pricing Component
-
-**TO BE COMPLETED AFTER THE PLANS COMPONENT IS INTEGRATED WITH STRIPE.COM**
+The pricing page on the web-site as well the portal component pricing.tsx should be implemented as per this [design](https://www.figma.com/file/vDqU6NBTspvomTQGN4nel0/3D-Workspace-(Community)?node-id=437%3A490).
 
 ## Plans Component - Frontend
 **What needs to be done**
 1. In officekube portal repo modify the code of the pricing.tsx component to handle the logic of a user switching from one plan to another as follows:
    - The component should disable the button Sign Up button for the plan that the user is currently on. To determine what the current plan is the component should call an API endpoint of the subscription manager service GET /plans/current at the time of its loading.
    - Replace button Notify Me for the plan Solo with the button SIGN UP.
-   - When the user clicks on Sign Up button of any other plan a Switch Plan dialog should pop up (refer to the design here https://www.figma.com/file/vDqU6NBTspvomTQGN4nel0/3D-Workspace-(Community)?node-id=437%3A490). The dialog should be created using Syncfusion React library - https://ej2.syncfusion.com/react/documentation/dialog/getting-started/).
+   - When the user clicks on Sign Up button of any other plan a Switch Plan dialog should pop up (refer to this [design](https://www.figma.com/file/vDqU6NBTspvomTQGN4nel0/3D-Workspace-(Community)?node-id=437%3A490)). The dialog should be created using [Syncfusion React library](https://ej2.syncfusion.com/react/documentation/dialog/getting-started/).
    - In the dialog when the user clicks button Switch make a GET call to the endpoint /payments/checkout of the subscription manager backend (see below) and pass a query parameter named price_id with the value that depends on which button SIGN UP has been clicked by the user before they got to the dialog. For the plan Enthusiast that value should be set "free", for the plan Solo it should be "price_1LECZyKUSkDFrC1EroX3h7NW".
    - If the user clicked Cancel simply return them back to the Plans page.
+
+### Success and Failure Pages
+After a user has been redirected to the Stripe checkout page, Stripe will redirect the user back to either a success or a failure page indicating whether the user has successfully signed up for our subscription.
+The pricing.tsx will be responsible for showing either success or failure. For that to work the page might receive a URL parameter named checkoutResult. Modify the page as follows:
+1. Use the react-router-dom library to retrieve the value of the URL parameter checkoutResult immediately after the page has been loaded into a web-browser.
+2. If the parameter is equal to "success" then show a popup message (using Dialog component from Syncfusion library) with a button OK and a message "Thank you for your subscription!". When the user clicks OK, the dialog should be closed.
+3. If the parameter is equal to "failure" then show a popup message (using Dialog component from Syncfusion library) with a button OK and a message "Sorry, something went wrong. Please try again later or contact us!". When the user clicks OK, the dialog should be closed.
+4. If the parameter is not set to any value then no action should be taken.
 
 ## Plans Component - Backend
 **What needs to be done**
@@ -136,5 +143,16 @@ When doing so:
    - Using sample code [here](https://stripe.com/docs/payments/checkout/custom-success-page), extract customer ID from the stripe session.
    - Pull a record from the table transactions where sessionId = session.ID and update its fields customerId (customer.ID), status = CURRENT, last_modified_ts = current timestamp.
    - Pull a record from the table user_plans where id = userPlanId (pulled from transactions) and update its fields customerId (customer.ID), status = CURRENT, last_modified_ts = current timestamp.
+
+### 5. Endpoint GET /plans/current
+Implement the endpoint /payments/current as follows:
+- Create the endpoint handler in a separate file go/api_payments_current.go and using the GIN web framework. 
+- Secure the endpoint with a call to IsApiAuthenticated().
+- Pull a user id using the function GetUserId
+- Retrieve a record from user_plans where userId == user id and status == 'CURRENT'.
+- If no record is found then return an http code 404.
+- If a record has been found using its field planId retrieve a matching record from the table available_plans.
+- Create an instance of the model APlan, populate its properties with proper values from the user_plans and available_plans records and return the model along with http code 200.
+
 
 **TO BE COMPLETED**: add logic of switching between plans (i.e. handling a case if the previous subscription/plan needs to be cancelled first and the case when the user switches to/from the free plan).
