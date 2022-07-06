@@ -136,15 +136,15 @@ When doing so:
 1. Create tables transactions and user_plans and update the table available_plans as per the [db design](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/edit/main/README.md#database-structure) and their models in the code.
 2. In security.go add a function GetUserId that should return a string containing a user id. The implementation of the function replicates almost 100% the code of a function IsApiAuthenticated and additionally extracts the user id from idToken.Subject and returns it. Make sure that both function re-use the same code (rather than copying and pasting it).
 3. In handler for the endpoint /payments/checkout right after retrieving the price_id add the code that will:
-   - Check if there is already a record in the table transactions using user id (use function GetUserId), price_id. If such a record exists and its status is equal to "CURRENT" return http code 208.
+   - Pull a record from the table user_plans using user id (use function GetUserId), price_id. If such a record exists and its status is equal to "CURRENT" return http code 208.
 4. In the same handler for the endpoint /payments/checkout right after creating a stripe session but before redirecting a user to s.URL insert code that would perform the following:
    - Pull a record from the table available_plans where priceId = price_id.
-   - Pull a record from the table user_plans where planId = plan_id (id pulled from available_plans) and userId = logged on user id. If such a record exists update its status to "CHECKOUT" and the field last_modified_ts to current timestamp. Othwerise, create a new record with properly populated fields id (newly generated uuid), userId, planId (plan_id), created_ts (set to current timestamp), and status (set to CHECKOUT).
-   - Create a new record in the table transactions and populate its fields userId, priceId, sessionId (s.ID), userPlandId (id of the record created in previous step in table user_plans), status (CHECKOUT), and created_ts (set to current timestamp).
+   - If a record from the table user_plans (pulled in step 3) exists update its status to "CHECKOUT" and the field last_modified_ts to current timestamp. Othwerise, create a new record with properly populated fields id (newly generated uuid), userId, planId (plan_id), priceId, created_ts (set to current timestamp), and status (set to CHECKOUT).
+   - Create a new record in the table transactions and populate its fields userId, priceId, sessionId (s.ID), userPlandId (id of the record from the table user_plans), status (CHECKOUT), and created_ts (set to current timestamp).
 5. Modify function FulfillOrder as follows:
    - Using sample code [here](https://stripe.com/docs/payments/checkout/custom-success-page), extract customer ID from the stripe session.
-   - Pull a record from the table transactions where sessionId = session.ID and update its fields customerId (customer.ID), status = CURRENT, last_modified_ts = current timestamp.
-   - Pull a record from the table user_plans where id = userPlanId (pulled from transactions) and update its fields customerId (customer.ID), status = CURRENT, last_modified_ts = current timestamp.
+   - Pull a record from the table transactions where sessionId = session.ID and update its fields customerId (session.customer.ID), status = CURRENT, last_modified_ts = current timestamp.
+   - Pull a record from the table user_plans where id = userPlanId (pulled from transactions) and update its fields customerId (session.customer.ID), subscriptionId (session.subscription.ID), status = CURRENT, last_modified_ts = current timestamp.
 
 ### 5. Endpoint GET /plans/current
 Implement the endpoint /payments/current as follows:
