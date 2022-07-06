@@ -51,31 +51,38 @@ func InitAuthenticator() (error *error) {
 	return nil
 }
 
-/**
- * The method validates if there is an authorization header with the id_token.
- */
-func IsApiAuthenticated(c *gin.Context) int {
+// get result and userid
+func GetAuthentication(c *gin.Context) (userId string, result int) {
 	rawAccessToken := c.Request.Header.Get("Authorization")
 	if rawAccessToken == "" {
-		return 1
+		result = 1
+		return
 	}
-
 	parts := strings.Split(rawAccessToken, " ")
 	if len(parts) != 2 {
-		return 2
+		result = 2
+		return
 	}
-
 	ctx := context.Background()
-
 	idToken, err := OAuth2Verifier.Verify(ctx, parts[1])
-
 	// idiotic go design - to mute "idToken declared but not used" "error"
-	_ = idToken
-
 	if err != nil {
 		log.Println("Failed to verify ID Token: " + err.Error())
-		return 3
+		result = 3
+		return
 	}
+	// get user id from idToken
+	userId = idToken.Subject
+	result = 0
+	return
+}
 
-	return 0
+func IsApiAuthenticated(c *gin.Context) int {
+	_, result := GetAuthentication(c)
+	return result
+}
+
+func GetUserId(c *gin.Context) string {
+	userId, _ := GetAuthentication(c)
+	return userId
 }

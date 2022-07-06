@@ -27,7 +27,6 @@ func PaymentsCheckoutGet(c *gin.Context) {
 	}
 	//get requst price id
 	price_id := c.Query("price_id")
-	log.Printf(price_id)
 	//get stripe api key
 	config, err := util.LoadConfig(".")
 	if err != nil {
