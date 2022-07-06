@@ -32,6 +32,8 @@ object user_plans {
   userId: uuid
   planId: int4
   customerId: varchar(100)
+  priceId: varchar(100)  
+  subscriptionId: varchar(100)
   status: varchar(50)
   created_ts: timestamp
   last_modified_ts: timestamp
@@ -81,7 +83,7 @@ The service is based on the following stack:
 - DB Backend: PostgreSQL
 - Code Generator: Open API Code Generator
 
-### 1. **Endpoint GET /plans**
+### 1. Endpoint GET /plans
 As a part of this assignment implement /plans  (refer [openapi.yml](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/blob/main/api/openapi.yml)). Assume that all available plans are stored in a table AvailablePlans persisted in the PostgreSQL db to which the service has read/write access.
 The service should make a call into the DB and retrieve all records from the mentioned table where field active is equal to "true". The table AbailablePlans has the following structure:
 
@@ -107,7 +109,7 @@ openapi-generator-cli generate --package-name workspaceEngine -g go-gin-server -
 1. Avoid hard-coding service configuration (e.g. db connection parameters). The service configuration should be persisted in a YAML file subscription_manager.yml.
 
 
-### 2. **Endpoint GET /payments/checkout**
+### 2. Endpoint GET /payments/checkout
 Use the [quickstart guide](https://stripe.com/docs/checkout/quickstart) for the Stripe Checkout integration to add an endpoint /payments/checkout and its implementation.
 When doing so:
   - **Make sure to add the endpoint to the module's openapi.yml first.** The endpoint should receive a string query parameter named price_id.
@@ -120,7 +122,7 @@ When doing so:
     - **Supply success and cancel URLs**. See the note for **Create a Checkout Session** above.
 
 
-### 3. **Endpoint POST /payments/stripewebhook**
+### 3. Endpoint POST /payments/stripewebhook
 Use the [stripe guide](https://stripe.com/docs/payments/checkout/fulfill-orders) for the Stripe Checkout integration to add an endpoint /payments/stripewebhook and its implementation.
 When doing so:
   - **Make sure to add the endpoint to the module's openapi.yml first.** 
@@ -130,7 +132,7 @@ When doing so:
     - **Fullfill the order**. The function FulfillOrder will be empty for now.
 
 
-### 4. **Function FulfillOrder**
+### 4. Function FulfillOrder
 1. Create tables transactions and user_plans and update the table available_plans as per the [db design](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/edit/main/README.md#database-structure) and their models in the code.
 2. In security.go add a function GetUserId that should return a string containing a user id. The implementation of the function replicates almost 100% the code of a function IsApiAuthenticated and additionally extracts the user id from idToken.Subject and returns it. Make sure that both function re-use the same code (rather than copying and pasting it).
 3. In handler for the endpoint /payments/checkout right after retrieving the price_id add the code that will:
@@ -153,6 +155,16 @@ Implement the endpoint /payments/current as follows:
 - If no record is found then return an http code 404.
 - If a record has been found using its field planId retrieve a matching record from the table available_plans.
 - Create an instance of the model APlan, populate its properties with proper values from the user_plans and available_plans records and return the model along with http code 200.
+
+### 6. Upgrading/Downgrading Subscription
+If a user is already subscribed and requests to upgrade/downgrade their subscription the following needs to be done:
+
+1. Update the table user_plans (add fields subscriptionId and priceId) as per the [db design](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/edit/main/README.md#database-structure) and its model in the code.
+2. In code of the handler for the endpoint /payments/checkout where a record from the table user_plans is retrieved and before updating its status to "CHECKOUT" and the field last_modified_ts to current timestamp store the value of its field priceId into a local variable. If the record has not been found, modify the code creating a new record with properly populated fields id (newly generated uuid), userId, planId (plan_id), created_ts (set to current timestamp), status (set to CHECKOUT), **and the field priceId set to the passed in value**.
+
+**FIXME: The logic of checking the current plan (see table transactions) is messed up. Need to fix it first**.
+
+### 7. Cancelling Subscription
 
 
 **TO BE COMPLETED**: add logic of switching between plans (i.e. handling a case if the previous subscription/plan needs to be cancelled first and the case when the user switches to/from the free plan).
