@@ -41,6 +41,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APlan'
+        "404":
+          description: "A user does not have any plan."
   /payments/checkout:
     get:
       tags:
