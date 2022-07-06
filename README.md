@@ -146,7 +146,7 @@ When doing so:
 
 ### 5. Endpoint GET /plans/current
 Implement the endpoint /payments/current as follows:
-- Create the endpoint handler in a separate file **go/api_payments_current.go** and using the **GIN web framework. 
+- Create the endpoint handler in a separate file go/api_payments_current.go and using the GIN web framework. 
 - Secure the endpoint with a call to IsApiAuthenticated().
 - Pull a user id using the function GetUserId
 - Retrieve a record from user_plans where userId == user id and status == 'CURRENT'.
