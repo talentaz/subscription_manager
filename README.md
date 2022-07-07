@@ -195,9 +195,10 @@ Implement the endpoint /payments/current as follows:
 
 
 ### 6. Cancelling Subscription
-
+At this point we won't build subscription cancellation for 2 reasons:
+1. A user would have an option to switch back to the free plan.
+2. If a user insists on cancellation we will use a [manual option](https://stripe.com/docs/billing/subscriptions/cancel) to cancel their subscription.
 
 **TO BE COMPLETED**: 
-- Need special handling for cancellation? How about simply asking the user to switch to the free plan?
 - Design UI for the billing/payment history.
 - Backend logic to pull payment history.
