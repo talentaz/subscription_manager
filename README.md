@@ -197,4 +197,7 @@ Implement the endpoint /payments/current as follows:
 ### 6. Cancelling Subscription
 
 
-**TO BE COMPLETED**: add logic of switching between plans (i.e. handling a case if the previous subscription/plan needs to be cancelled first and the case when the user switches to/from the free plan).
+**TO BE COMPLETED**: 
+- Need special handling for cancellation? How about simply asking the user to switch to the free plan?
+- Design UI for the billing/payment history.
+- Backend logic to pull payment history.
