@@ -135,16 +135,53 @@ When doing so:
 ### 4. Function FulfillOrder
 1. Create tables transactions and user_plans and update the table available_plans as per the [db design](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/edit/main/README.md#database-structure) and their models in the code.
 2. In security.go add a function GetUserId that should return a string containing a user id. The implementation of the function replicates almost 100% the code of a function IsApiAuthenticated and additionally extracts the user id from idToken.Subject and returns it. Make sure that both function re-use the same code (rather than copying and pasting it).
-3. In handler for the endpoint /payments/checkout right after retrieving the price_id add the code that will:
-   - Pull a record from the table user_plans using user id (use function GetUserId), price_id. If such a record exists and its status is equal to "CURRENT" return http code 208.
-4. In the same handler for the endpoint /payments/checkout right after creating a stripe session but before redirecting a user to s.URL insert code that would perform the following:
+3. In handler for the endpoint /payments/checkout right after retrieving the stripe API key insert the code that will:
+   - Pull a record from the table user_plans using user id (use function GetUserId). If such a record exists and its priceId == price_id return http code 208. 
+4. If user_plans record exists but its priceId <> price_id:
    - Pull a record from the table available_plans where priceId = price_id.
-   - If a record from the table user_plans (pulled in step 3) exists update its status to "CHECKOUT", planId, priceId, and the field last_modified_ts to current timestamp. Othwerise, create a new record with properly populated fields id (newly generated uuid), userId, planId (plan_id), priceId, created_ts (set to current timestamp), and status (set to CHECKOUT).
+   - Implement Upgrade/Downgrade subscription using sample code from section [Changing Prices](https://stripe.com/docs/billing/subscriptions/upgrade-downgrade#changing). Use subscriptionId from the user_tables record and the new price_id.
+   - Create new record in the table transactions and populate its fields userId, priceId, userPlandId (id of the record from the table user_plans), status (PRICE_CHANGE), and created_ts (set to current timestamp).
+   - Update user_plans record with new priceId and planId and set last_modified_ts to current timestamp.
+   - Return HTTP 200
+5. If user_plans record does NOT exist
+   - Create a new record in user_plans with properly populated fields id (newly generated uuid), userId, planId (plan_id), priceId, created_ts (set to current timestamp), and status (set to CHECKOUT).
    - Create a new record in the table transactions and populate its fields userId, priceId, sessionId (s.ID), userPlandId (id of the record from the table user_plans), status (CHECKOUT), and created_ts (set to current timestamp).
-5. Modify function FulfillOrder as follows:
+6. Modify function FulfillOrder as follows:
    - Using sample code [here](https://stripe.com/docs/payments/checkout/custom-success-page), extract customer ID from the stripe session.
    - Pull a record from the table transactions where sessionId = session.ID and update its fields customerId (session.customer.ID), status = CURRENT, last_modified_ts = current timestamp.
    - Pull a record from the table user_plans where id = userPlanId (pulled from transactions) and update its fields customerId (session.customer.ID), subscriptionId (session.subscription.ID), status = CURRENT, last_modified_ts = current timestamp.
+
+For better understanding of steps 3 through 5 refer to the activity diagram below:
+
+```plantuml
+start
+:Step 3. After retrieving the stripe key;
+:Get user id (GetUserId());
+:Pull record from user_plans 
+ with user_id;
+If (Record exists?) then (YES)
+  If (record.priceId == price_id?) then (YES)
+    :Return HTTP 208;
+    end
+  Else (NO - Step 4)
+    :Pull record from available_plans 
+        (priceId = price_id);
+    :Upgrade/Downgrade 
+         Subscription;
+    :Create new record in transactions;
+    :Update user_plans record 
+     (priceId, planId, last_modified_ts);
+    :Return HTTP 200;
+    end
+  Endif
+Else (NO - Step 5)
+  :Create new record in user_plans;
+  :Create new record in transactions;
+  :Create checkout session;
+  :Return HTTP 302;
+  end
+EndIf
+```
 
 ### 5. Endpoint GET /plans/current
 Implement the endpoint /payments/current as follows:
@@ -156,15 +193,8 @@ Implement the endpoint /payments/current as follows:
 - If a record has been found using its field planId retrieve a matching record from the table available_plans.
 - Create an instance of the model APlan, populate its properties with proper values from the user_plans and available_plans records and return the model along with http code 200.
 
-### 6. Upgrading/Downgrading Subscription
-If a user is already subscribed and requests to upgrade/downgrade their subscription the following needs to be done:
 
-1. Update the table user_plans (add fields subscriptionId and priceId) as per the [db design](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/edit/main/README.md#database-structure) and its model in the code.
-2. In code of the handler for the endpoint /payments/checkout where a record from the table user_plans is retrieved and before updating its status to "CHECKOUT" and the field last_modified_ts to current timestamp store the value of its field priceId into a local variable. If the record has not been found, modify the code creating a new record with properly populated fields id (newly generated uuid), userId, planId (plan_id), created_ts (set to current timestamp), status (set to CHECKOUT), **and the field priceId set to the passed in value**.
-
-**FIXME: The logic of checking the current plan (see table transactions) is messed up. Need to fix it first**.
-
-### 7. Cancelling Subscription
+### 6. Cancelling Subscription
 
 
 **TO BE COMPLETED**: add logic of switching between plans (i.e. handling a case if the previous subscription/plan needs to be cancelled first and the case when the user switches to/from the free plan).
