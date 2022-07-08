@@ -12,11 +12,16 @@ package subscriptionManager
 import (
 	"log"
 	"net/http"
+	"subscriptionManager/db"
+	"subscriptionManager/models"
 	"subscriptionManager/util"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/checkout/session"
+	"github.com/stripe/stripe-go/v72/sub"
 )
 
 func PaymentsCheckoutGet(c *gin.Context) {
@@ -27,6 +32,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 	}
 	//get requst price id
 	price_id := c.Query("price_id")
+
 	//get stripe api key
 	config, err := util.LoadConfig(".")
 	if err != nil {
@@ -35,6 +41,9 @@ func PaymentsCheckoutGet(c *gin.Context) {
 	stripe.Key = config.Stripe.StripeAPI
 	CancelURL := config.Stripe.CancelURL
 	SuccessURL := config.Stripe.SuccessURL
+
+	//get user_id
+	user_id := GetUserId(c)
 
 	//create checkout session
 	params := &stripe.CheckoutSessionParams{
@@ -51,11 +60,92 @@ func PaymentsCheckoutGet(c *gin.Context) {
 	s, err := session.New(params)
 	if err != nil {
 		log.Println(err)
-	} else {
-		log.Println(s.URL)
-		// c.JSON(http.StatusOK, gin.H{
-		// 	"checkoutURL": s.URL,
-		// })
-		c.Redirect(http.StatusFound, s.URL)
 	}
+
+	// check existing user_id
+	var IsUser []models.UserPlans
+	db.DB.Where("user_id", user_id).Find(&IsUser)
+	if len(IsUser) > 0 {
+		//check exsting user_id and price_id
+		db.DB.Where("user_id", user_id).Where("price_id", price_id).Find(&IsUser)
+		if len(IsUser) > 0 {
+			c.JSON(http.StatusAlreadyReported, gin.H{
+				"message": "Status 208",
+			})
+			return
+		} else {
+			// upgrade/downgrade
+			db.DB.Where("user_id", user_id).Find(&IsUser)
+			subscription_id := IsUser[0].SubscriptionId // get subscription_id from user_plans table
+			log.Println("subscription id---------", subscription_id)
+			subscription, err := sub.Get(subscription_id, nil)
+			log.Println("subscription error-------", err)
+			params := &stripe.SubscriptionParams{
+				CancelAtPeriodEnd: stripe.Bool(false),
+				ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
+				Items: []*stripe.SubscriptionItemsParams{
+					{
+						ID:    stripe.String(subscription.Items.Data[0].ID),
+						Price: stripe.String(price_id),
+					},
+				},
+			}
+			subscription, err = sub.Update(subscription_id, params)
+			// update user_plans data (price_id, plan_id, last_modified_ts)
+			var AvailablePlans []models.AvailablePlans
+			db.DB.Where("price_id", price_id).Find(&AvailablePlans)
+			new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
+			db.DB.Where("user_id", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
+
+			// create new transaction data
+			transaction_uuid := uuid.New()
+			transaction_plane_id := IsUser[0].Id
+			transaction := &models.Transactions{
+				Id:         transaction_uuid.String(),
+				UserId:     user_id,
+				PriceId:    price_id,
+				UserPlanId: transaction_plane_id,
+				Status:     "PRICE_CHANGE",
+				CreatedTs:  time.Now(),
+			}
+			db.DB.Create(&transaction)
+			c.JSON(http.StatusOK, gin.H{
+				"subscription": subscription,
+			})
+			return
+		}
+	} else {
+		// create user_plans data
+		user_uuid := uuid.New()
+		var plans []models.AvailablePlans
+		db.DB.Select("id").Where("price_id", price_id).First(&plans)
+		plan_id := plans[0].Id
+		userPlans := &models.UserPlans{
+			Id:        user_uuid.String(),
+			PlanId:    int(plan_id),
+			UserId:    user_id,
+			PriceId:   price_id,
+			Status:    "CHECKOUT",
+			CreatedTs: time.Now(),
+		}
+		db.DB.Create(&userPlans)
+
+		// create transaction data
+		transaction_uuid := uuid.New()
+		transaction := &models.Transactions{
+			Id:         transaction_uuid.String(),
+			UserId:     user_id,
+			UserPlanId: user_uuid.String(),
+			SessionId:  s.ID,
+			PriceId:    price_id,
+			Status:     "CHECKOUT",
+			CreatedTs:  time.Now(),
+		}
+		db.DB.Create(&transaction)
+	}
+	log.Println(s.ID)
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"checkoutURL": s.URL,
+	// })
+	c.Redirect(http.StatusFound, s.URL)
 }
