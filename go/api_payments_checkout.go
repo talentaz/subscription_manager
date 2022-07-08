@@ -25,15 +25,17 @@ import (
 )
 
 func PaymentsCheckoutGet(c *gin.Context) {
-	// Check authentication
+	/**
+	 * check authentication
+	 */
 	if IsApiAuthenticated(c) > 0 {
 		http.Error(c.Writer, "Failed to authenticate.", http.StatusUnauthorized)
 		return
 	}
-	//get requst price id
-	price_id := c.Query("price_id")
-
-	//get stripe api key
+	price_id := c.Query("price_id") //get requst price id
+	/**
+	 * get stripe info from config
+	 */
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
@@ -42,26 +44,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 	CancelURL := config.Stripe.CancelURL
 	SuccessURL := config.Stripe.SuccessURL
 
-	//get user_id
-	user_id := GetUserId(c)
-
-	//create checkout session
-	params := &stripe.CheckoutSessionParams{
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			&stripe.CheckoutSessionLineItemParams{
-				Price:    stripe.String(price_id),
-				Quantity: stripe.Int64(1),
-			},
-		},
-		Mode:       stripe.String("subscription"),
-		SuccessURL: stripe.String(SuccessURL),
-		CancelURL:  stripe.String(CancelURL),
-	}
-	s, err := session.New(params)
-	if err != nil {
-		log.Println(err)
-	}
-
+	user_id := GetUserId(c) //get user_id
 	// check existing user_id
 	var IsUser []models.UserPlans
 	db.DB.Where("user_id", user_id).Find(&IsUser)
@@ -69,12 +52,17 @@ func PaymentsCheckoutGet(c *gin.Context) {
 		//check exsting user_id and price_id
 		db.DB.Where("user_id", user_id).Where("price_id", price_id).Find(&IsUser)
 		if len(IsUser) > 0 {
+			/**
+			 * 2. a user attempting to subscribe to the plan that s/he was already subscribed to
+			 */
 			c.JSON(http.StatusAlreadyReported, gin.H{
 				"message": "Status 208",
 			})
 			return
 		} else {
-			// upgrade/downgrade
+			/**
+			 * 3.  a user switching to another plan (upgrade/downgrade)
+			 */
 			db.DB.Where("user_id", user_id).Find(&IsUser)
 			subscription_id := IsUser[0].SubscriptionId // get subscription_id from user_plans table
 			log.Println("subscription id---------", subscription_id)
@@ -115,10 +103,30 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			return
 		}
 	} else {
-		// create user_plans data
+		/**
+		* 1. a user subscribing to our service for the first time
+		 */
+		//create checkout session
+		params := &stripe.CheckoutSessionParams{
+			LineItems: []*stripe.CheckoutSessionLineItemParams{
+				&stripe.CheckoutSessionLineItemParams{
+					Price:    stripe.String(price_id),
+					Quantity: stripe.Int64(1),
+				},
+			},
+			Mode:       stripe.String("subscription"),
+			SuccessURL: stripe.String(SuccessURL),
+			CancelURL:  stripe.String(CancelURL),
+		}
+		s, err := session.New(params)
+		if err != nil {
+			log.Println(err)
+		}
+
+		// create user plans data
 		user_uuid := uuid.New()
 		var plans []models.AvailablePlans
-		db.DB.Select("id").Where("price_id", price_id).First(&plans)
+		db.DB.Select("id").Where("price_id", price_id).Find(&plans)
 		plan_id := plans[0].Id
 		userPlans := &models.UserPlans{
 			Id:        user_uuid.String(),
@@ -142,10 +150,10 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			CreatedTs:  time.Now(),
 		}
 		db.DB.Create(&transaction)
+		// c.JSON(http.StatusOK, gin.H{
+		// 	"checkoutURL": s.URL,
+		// })
+		c.Redirect(http.StatusFound, s.URL)
 	}
-	log.Println(s.ID)
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"checkoutURL": s.URL,
-	// })
-	c.Redirect(http.StatusFound, s.URL)
+
 }
