@@ -82,7 +82,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListOfAPayments'
         "404":
-          description: "A user does not have any plan."
+          description: "A user does not have any payment history."
 components:
   schemas:
     APlan:
@@ -122,7 +122,7 @@ components:
     ListOfAPayments:
       type: object
       properties:
-        plans:
+        payments:
           type: array
           items:
             $ref: '#/components/schemas/APayment'
