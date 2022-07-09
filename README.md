@@ -199,6 +199,11 @@ At this point we won't build subscription cancellation for 2 reasons:
 1. A user would have an option to switch back to the free plan.
 2. If a user insists on cancellation we will use a [manual option](https://stripe.com/docs/billing/subscriptions/cancel) to cancel their subscription.
 
+## Billing - Frontend
+**What needs to be done**
+1. In officekube portal in settings, under the menu item Plan (but above the item Notifications) add a new item called Billing.
+2. Similar to the component Pricing.tsx add a component Billing.tsx (in folder src\app\components\Account) that should be designed as per the design frame [Payment History](https://www.figma.com/file/vDqU6NBTspvomTQGN4nel0/3D-Workspace-(Community)?node-id=0%3A1).
+3. The Billing.tsx component should invoke the endpoint GET /payments/history. Refer to the [openapi.yml](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/blob/main/api/openapi.yml) spec for details on how to call the endpoint and process its response.
+
 **TO BE COMPLETED**: 
-- Design UI for the billing/payment history.
 - Backend logic to pull payment history.
