@@ -200,10 +200,21 @@ At this point we won't build subscription cancellation for 2 reasons:
 2. If a user insists on cancellation we will use a [manual option](https://stripe.com/docs/billing/subscriptions/cancel) to cancel their subscription.
 
 ## Billing - Frontend
-**What needs to be done**
 1. In officekube portal in settings, under the menu item Plan (but above the item Notifications) add a new item called Billing.
 2. Similar to the component Pricing.tsx add a component Billing.tsx (in folder src\app\components\Account) that should be designed as per the design frame [Payment History](https://www.figma.com/file/vDqU6NBTspvomTQGN4nel0/3D-Workspace-(Community)?node-id=0%3A1).
 3. The Billing.tsx component should invoke the endpoint GET /payments/history. Refer to the [openapi.yml](https://gitlab.dev.workspacenow.cloud/platform/subscription-manager/-/blob/main/api/openapi.yml) spec for details on how to call the endpoint and process its response.
 
+## Billing - Backend
+### 1. Endpoint /payments/history
+Implement the endpoint /payments/history as follows:
+- Create the endpoint handler in a separate file go/api_payments_history.go and using the GIN web framework. 
+- Secure the endpoint with a call to IsApiAuthenticated().
+- Pull a user id using the function GetUserId
+- Retrieve a record from user_plans where userId == user id and status == 'CURRENT'.
+- If no record is found then return an http code 404.
+- If a record has been found using its field customerId retrieve a list of payments from Stripe using its API endpoint [PaymentIntents](https://stripe.com/docs/api/payment_intents/list).
+- Create an array APayment instances return it (as json payload { "payments": array }) along with http code 200.
+
 **TO BE COMPLETED**: 
-- Backend logic to pull payment history.
+- Need to sort out how to handle logic for a free plan.
+- For the endpoint /plans/checkout replace the expected price_id with plan_id (from available_plans).
