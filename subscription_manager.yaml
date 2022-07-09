@@ -5,7 +5,7 @@ Server:
 Database:
   driver: postgres
   #DBUsername: postgres
-  #DBSchema: subscription
+  DBSchema: subscription
   #DBName: test_sub
   #DBPassword: 1234
   DBUsername: submgr
