@@ -69,6 +69,20 @@ paths:
       responses:
         "200":
           description: "The response includes a json payload that represents an instance of APlan."
+  /payments/history:
+    get:
+      tags:
+      - Payment History
+      summary: Returns a list APayment instances for a logged on user."
+      responses:
+        "200":
+          description: "The response includes a json payload that represents an array of APayment instances."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOfAPayments'
+        "404":
+          description: "A user does not have any plan."
 components:
   schemas:
     APlan:
@@ -92,6 +106,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/APlan'
+    APayment:
+      title: API Object that contains details of a payment.
+      type: object
+      properties:
+        issuedDate:
+          type: string
+          format: date
+        amount:
+          type: number
+        currency:
+          type: string
+        method:
+          type: string
+    ListOfAPayments:
+      type: object
+      properties:
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/APayment'
   securitySchemes:
     oauth:
       type: oauth2
