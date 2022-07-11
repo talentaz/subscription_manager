@@ -6,6 +6,8 @@ info:
 servers:
   - url: http://localhost/dev/api
     description: Development server
+  - url: https://submgr.dev.workspacenow.cloud/api
+    description: Production Url
 security:
   - oauth: [jhipster, email, profile]
   - openId: [jhipster, email, profile]    
