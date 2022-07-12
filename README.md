@@ -197,6 +197,3 @@ Implement the endpoint /payments/history as follows:
 - If no record is found then return an http code 404.
 - If a record has been found using its field customerId retrieve a list of payments from Stripe using its API endpoint [PaymentIntents](https://stripe.com/docs/api/payment_intents/list).
 - Create an array APayment instances return it (as json payload { "payments": array }) along with http code 200.
-
-**TO BE COMPLETED**: 
-- For the endpoint /plans/checkout replace the expected price_id with plan_id (from available_plans).
