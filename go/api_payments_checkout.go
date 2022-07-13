@@ -21,6 +21,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/checkout/session"
+	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/stripe/stripe-go/v72/sub"
 )
 
@@ -106,6 +107,12 @@ func PaymentsCheckoutGet(c *gin.Context) {
 		/**
 		 * 1. a user subscribing to our service for the first time
 		 */
+		// create customer id
+		c_params := &stripe.CustomerParams{
+			Description: stripe.String(user_id),
+		}
+		cus, _ := customer.New(c_params)
+
 		//create checkout session
 		params := &stripe.CheckoutSessionParams{
 			LineItems: []*stripe.CheckoutSessionLineItemParams{
@@ -114,6 +121,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 					Quantity: stripe.Int64(1),
 				},
 			},
+			Customer:   stripe.String(cus.ID), //add customer id from created customer data
 			Mode:       stripe.String("subscription"),
 			SuccessURL: stripe.String(SuccessURL),
 			CancelURL:  stripe.String(CancelURL),
@@ -124,36 +132,37 @@ func PaymentsCheckoutGet(c *gin.Context) {
 		}
 
 		// create user plans data
-		user_uuid := uuid.New()
-		var plans []models.AvailablePlans
-		db.DB.Select("id").Where("price_id", price_id).Find(&plans)
-		plan_id := plans[0].Id
-		userPlans := &models.UserPlans{
-			Id:        user_uuid.String(),
-			PlanId:    int(plan_id),
-			UserId:    user_id,
-			PriceId:   price_id,
-			Status:    "CHECKOUT",
-			CreatedTs: time.Now(),
-		}
-		db.DB.Create(&userPlans)
+		// user_uuid := uuid.New()
+		// var plans []models.AvailablePlans
+		// db.DB.Select("id").Where("price_id", price_id).Find(&plans)
+		// plan_id := plans[0].Id
+		// userPlans := &models.UserPlans{
+		// 	Id:        user_uuid.String(),
+		// 	PlanId:    int(plan_id),
+		// 	UserId:    user_id,
+		// 	PriceId:   price_id,
+		// 	Status:    "CHECKOUT",
+		// 	CreatedTs: time.Now(),
+		// }
+		// db.DB.Create(&userPlans)
 
-		// create transaction data
-		transaction_uuid := uuid.New()
-		transaction := &models.Transactions{
-			Id:         transaction_uuid.String(),
-			UserId:     user_id,
-			UserPlanId: user_uuid.String(),
-			SessionId:  s.ID,
-			PriceId:    price_id,
-			Status:     "CHECKOUT",
-			CreatedTs:  time.Now(),
-		}
-		db.DB.Create(&transaction)
-		// c.JSON(http.StatusOK, gin.H{
-		// 	"checkoutURL": s.URL,
-		// })
-		c.Redirect(http.StatusFound, s.URL)
+		// // create transaction data
+		// transaction_uuid := uuid.New()
+		// transaction := &models.Transactions{
+		// 	Id:         transaction_uuid.String(),
+		// 	UserId:     user_id,
+		// 	UserPlanId: user_uuid.String(),
+		// 	SessionId:  s.ID,
+		// 	PriceId:    price_id,
+		// 	Status:     "CHECKOUT",
+		// 	CreatedTs:  time.Now(),
+		// }
+		// db.DB.Create(&transaction)
+		c.JSON(http.StatusOK, gin.H{
+			"checkoutURL": s,
+			"customer":    cus,
+		})
+		// c.Redirect(http.StatusFound, s.URL)
 	}
 
 }
