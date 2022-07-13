@@ -44,7 +44,6 @@ func PaymentsHistoryGet(c *gin.Context) {
 		params := &stripe.PaymentIntentListParams{
 			Customer: stripe.String(customer_id),
 		}
-		params.Filters.AddFilter("limit", "", "3")
 		i := paymentintent.List(params)
 		/**
 		 *	get payment data(IssuedDate, Amount, Currency, Method)
