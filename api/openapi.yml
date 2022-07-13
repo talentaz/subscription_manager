@@ -4,7 +4,7 @@ info:
   title: 'Subscription Manager'
   version: 0.0.1
 servers:
-  - url: http://localhost/api
+  - url: http://localhost/dev/api
     description: Development server
 security:
   - oauth: [jhipster, email, profile]
@@ -41,6 +41,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APlan'
+        "404":
+          description: "A user does not have any plan."
   /payments/checkout:
     get:
       tags:
@@ -55,8 +57,24 @@ paths:
         schema:
           type: string
       responses:
+        "302":
+          description: "Redirects to a stripe checkout page"
+        "208":
+          description: "The user is already subscribed to the provided plan."
+  /payments/current:
+    get:
+      tags:
+      - Payments Current
+      summary: Returns an payments current page."
+      responses:
         "200":
-          description: "Returns an stripe checkout page"
+          description: "The response includes a json payload that represents an array of APayment instances."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APlan'
+        "404":
+          description: "A user does not have any plan."
   /payments/stripewebhook:
     post:
       tags:
@@ -65,6 +83,20 @@ paths:
       responses:
         "200":
           description: "The response includes a json payload that represents an instance of APlan."
+  /payments/history:
+    get:
+      tags:
+      - Payment History
+      summary: Returns a list APayment instances for a logged on user."
+      responses:
+        "200":
+          description: "The response includes a json payload that represents an array of APayment instances."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOfAPayments'
+        "404":
+          description: "A user does not have any plan."
 components:
   schemas:
     APlan:
@@ -88,16 +120,36 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/APlan'
+    APayment:
+      title: API Object that contains details of a payment.
+      type: object
+      properties:
+        issuedDate:
+          type: string
+          format: date
+        amount:
+          type: number
+        currency:
+          type: string
+        method:
+          type: string
+    ListOfAPayments:
+      type: object
+      properties:
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/APayment'
   securitySchemes:
     oauth:
       type: oauth2
       description: OAuth2 authentication with KeyCloak
       flows:
         authorizationCode:
-          authorizationUrl: http://localhost/auth/realms/officekube/protocol/openid-connect/auth
-          tokenUrl: http://localhost/auth/realms/officekube/protocol/openid-connect/token
-          # authorizationUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube/protocol/openid-connect/auth
-          # tokenUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube/protocol/openid-connect/token
+          #authorizationUrl: http://localhost/auth/realms/officekube/protocol/openid-connect/auth
+          #tokenUrl: http://localhost/auth/realms/officekube/protocol/openid-connect/token
+          authorizationUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube/protocol/openid-connect/auth
+          tokenUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube/protocol/openid-connect/token
           scopes:
             jhipster: Jhipster specific claims
             email: Email claims
