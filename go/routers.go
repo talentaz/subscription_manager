@@ -79,6 +79,20 @@ var routes = Routes{
 	},
 
 	{
+		"PaymentsCurrentGet",
+		http.MethodGet,
+		"/api/payments/current",
+		PaymentsCurrentGet,
+	},
+
+	{
+		"PaymentsHistoryGet",
+		http.MethodGet,
+		"/api/payments/history",
+		PaymentsHistoryGet,
+	},
+
+	{
 		"PaymentsStripewebhookPost",
 		http.MethodPost,
 		"/api/payments/stripewebhook",

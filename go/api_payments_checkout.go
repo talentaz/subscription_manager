@@ -104,7 +104,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 		}
 	} else {
 		/**
-		* 1. a user subscribing to our service for the first time
+		 * 1. a user subscribing to our service for the first time
 		 */
 		//create checkout session
 		params := &stripe.CheckoutSessionParams{
