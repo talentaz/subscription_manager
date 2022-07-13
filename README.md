@@ -147,14 +147,16 @@ Else (NO - New Subscription)
   :Call "Create a customer" API;
   :Create new record in user_plans 
   (with customerId);
-  :Create new record in transactions;
   If (price_id == priceId of 
       available plan 
       with price $0?) then (NO)
     :Create checkout session with the customerId;
+    :Create new record in transactions;
     :Return HTTP 302;
     end
   Else (YES)
+    :Create new record in transactions
+      without sessionId;
     :Set status to CURRENT for 
     user_plans & transactions records;
     :Return HTTP 200;
