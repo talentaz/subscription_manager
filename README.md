@@ -134,8 +134,9 @@ If (Record exists?) then (YES)
         :Upgrade/Downgrade 
              Subscription;
       Else (Upgrade from free to paid plan)
-        If (user_plans.customerId is empty?) (YES)
+        If (user_plans.customerId empty) then (YES)
           :Call "Create a customer" API;
+        Else (NO)
         Endif
         :Create checkout session with the customerId;
         :Create new record in transactions;
@@ -172,7 +173,6 @@ Else (NO - New Subscription)
     end
   EndIf
 EndIf
-
 ```
 
 
