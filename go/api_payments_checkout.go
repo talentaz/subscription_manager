@@ -113,56 +113,86 @@ func PaymentsCheckoutGet(c *gin.Context) {
 		}
 		cus, _ := customer.New(c_params)
 
-		//create checkout session
-		params := &stripe.CheckoutSessionParams{
-			LineItems: []*stripe.CheckoutSessionLineItemParams{
-				&stripe.CheckoutSessionLineItemParams{
-					Price:    stripe.String(price_id),
-					Quantity: stripe.Int64(1),
-				},
-			},
-			Customer:   stripe.String(cus.ID), //add customer id from created customer data
-			Mode:       stripe.String("subscription"),
-			SuccessURL: stripe.String(SuccessURL),
-			CancelURL:  stripe.String(CancelURL),
-		}
-		s, err := session.New(params)
-		if err != nil {
-			log.Println(err)
-		}
-
 		// create user plans data
-		// user_uuid := uuid.New()
-		// var plans []models.AvailablePlans
-		// db.DB.Select("id").Where("price_id", price_id).Find(&plans)
-		// plan_id := plans[0].Id
-		// userPlans := &models.UserPlans{
-		// 	Id:        user_uuid.String(),
-		// 	PlanId:    int(plan_id),
-		// 	UserId:    user_id,
-		// 	PriceId:   price_id,
-		// 	Status:    "CHECKOUT",
-		// 	CreatedTs: time.Now(),
-		// }
-		// db.DB.Create(&userPlans)
+		user_uuid := uuid.New()
+		transaction_uuid := uuid.New()
+		var plans []models.AvailablePlans
+		db.DB.Select("id").Where("price_id", price_id).Find(&plans)
+		plan_id := plans[0].Id
+		userPlans := &models.UserPlans{
+			Id:         user_uuid.String(),
+			PlanId:     int(plan_id),
+			UserId:     user_id,
+			PriceId:    price_id,
+			CustomerId: cus.ID,
+			Status:     "CHECKOUT",
+			CreatedTs:  time.Now(),
+		}
+		db.DB.Create(&userPlans)
 
-		// // create transaction data
-		// transaction_uuid := uuid.New()
-		// transaction := &models.Transactions{
-		// 	Id:         transaction_uuid.String(),
-		// 	UserId:     user_id,
-		// 	UserPlanId: user_uuid.String(),
-		// 	SessionId:  s.ID,
-		// 	PriceId:    price_id,
-		// 	Status:     "CHECKOUT",
-		// 	CreatedTs:  time.Now(),
-		// }
-		// db.DB.Create(&transaction)
-		c.JSON(http.StatusOK, gin.H{
-			"checkoutURL": s,
-			"customer":    cus,
-		})
-		// c.Redirect(http.StatusFound, s.URL)
+		//check price_id == priceId availavle plan with price 0
+		var AvailablePlans []models.AvailablePlans
+		db.DB.Where("price_id", price_id).Find(&AvailablePlans)
+		price := AvailablePlans[0].Price
+
+		/**
+		 * 1.1 check free plan (if price==0 then free plan, )
+		 */
+		if price == 0 { //free plan
+			// create transaction data
+			transaction := &models.Transactions{
+				Id:         transaction_uuid.String(),
+				UserId:     user_id,
+				UserPlanId: user_uuid.String(),
+				PriceId:    price_id,
+				CustomerId: cus.ID,
+				Status:     "CURRENT",
+				CreatedTs:  time.Now(),
+			}
+			db.DB.Create(&transaction)
+			//update status to CURRENT for user_plans
+			db.DB.Where("price_id", price_id).Updates(models.UserPlans{Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&IsUser)
+			c.JSON(http.StatusOK, gin.H{
+				// "checkoutURL": s,
+				"customer": cus,
+			})
+			return
+		} else { //not free plan
+			//create checkout session
+			params := &stripe.CheckoutSessionParams{
+				LineItems: []*stripe.CheckoutSessionLineItemParams{
+					&stripe.CheckoutSessionLineItemParams{
+						Price:    stripe.String(price_id),
+						Quantity: stripe.Int64(1),
+					},
+				},
+				Customer:   stripe.String(cus.ID), //add customer id from created customer data
+				Mode:       stripe.String("subscription"),
+				SuccessURL: stripe.String(SuccessURL),
+				CancelURL:  stripe.String(CancelURL),
+			}
+			s, err := session.New(params)
+			if err != nil {
+				log.Println(err)
+			}
+			// create transaction data
+			transaction := &models.Transactions{
+				Id:         transaction_uuid.String(),
+				UserId:     user_id,
+				UserPlanId: user_uuid.String(),
+				SessionId:  s.ID,
+				PriceId:    price_id,
+				CustomerId: cus.ID,
+				Status:     "CHECKOUT",
+				CreatedTs:  time.Now(),
+			}
+			db.DB.Create(&transaction)
+			c.JSON(http.StatusOK, gin.H{
+				"checkoutURL": s,
+				"customer":    cus,
+			})
+			// c.Redirect(http.StatusFound, s.URL)
+		}
 	}
 
 }
