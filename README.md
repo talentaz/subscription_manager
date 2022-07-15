@@ -136,6 +136,8 @@ If (Record exists?) then (YES)
       Else (Upgrade from free to paid plan)
         :Create checkout session with the customerId;
         :Create new record in transactions;
+        :Update user_plans record 
+     (priceId, planId, last_modified_ts);
         :Return HTTP 302;
         end
       Endif
