@@ -23,6 +23,7 @@ import (
 	"github.com/stripe/stripe-go/v72/checkout/session"
 	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/stripe/stripe-go/v72/sub"
+	"gorm.io/gorm"
 )
 
 func PaymentsCheckoutGet(c *gin.Context) {
@@ -65,24 +66,81 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			 * 3.  a user switching to another plan (upgrade/downgrade)
 			 */
 			db.DB.Where("user_id", user_id).Find(&IsUser)
-			subscription_id := IsUser[0].SubscriptionId // get subscription_id from user_plans table
-			log.Println("subscription id---------", subscription_id)
-			subscription, err := sub.Get(subscription_id, nil)
-			log.Println("subscription error-------", err)
-			params := &stripe.SubscriptionParams{
-				CancelAtPeriodEnd: stripe.Bool(false),
-				ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
-				Items: []*stripe.SubscriptionItemsParams{
-					{
-						ID:    stripe.String(subscription.Items.Data[0].ID),
-						Price: stripe.String(price_id),
-					},
-				},
-			}
-			subscription, err = sub.Update(subscription_id, params)
-			// update user_plans data (price_id, plan_id, last_modified_ts)
 			var AvailablePlans []models.AvailablePlans
 			db.DB.Where("price_id", price_id).Find(&AvailablePlans)
+			subscription_id := IsUser[0].SubscriptionId // get subscription_id from user_plans table
+			customer_id := IsUser[0].CustomerId
+			log.Println("subscription id---------", len(subscription_id))
+			price := AvailablePlans[0].Price
+			/**
+			* 3.1 check free plan (if price==0 then free plan, )
+			 */
+			if price == 0 { // change from current plan to free one
+				subscription, _ := sub.Cancel(subscription_id, nil)
+				log.Println(subscription)
+				// set null of subscription id after cancel subscription
+				db.DB.Where("user_id", user_id).Model(&models.UserPlans{}).Update("subscription_id", gorm.Expr("NULL"))
+			} else { // change from current plan to other plan (not free plan)
+
+				// check subscription id
+				if len(subscription_id) > 0 { // exist subscription id
+					subscription, err := sub.Get(subscription_id, nil)
+					log.Println("subscription error-------", err)
+					params := &stripe.SubscriptionParams{
+						CancelAtPeriodEnd: stripe.Bool(false),
+						ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
+						Items: []*stripe.SubscriptionItemsParams{
+							{
+								ID:    stripe.String(subscription.Items.Data[0].ID),
+								Price: stripe.String(price_id),
+							},
+						},
+					}
+					subscription, err = sub.Update(subscription_id, params)
+				} else { // not exist subscriptionId
+
+					//create checkout session
+					params := &stripe.CheckoutSessionParams{
+						LineItems: []*stripe.CheckoutSessionLineItemParams{
+							&stripe.CheckoutSessionLineItemParams{
+								Price:    stripe.String(price_id),
+								Quantity: stripe.Int64(1),
+							},
+						},
+						Customer:   stripe.String(customer_id), //add customer id from created customer data
+						Mode:       stripe.String("subscription"),
+						SuccessURL: stripe.String(SuccessURL),
+						CancelURL:  stripe.String(CancelURL),
+					}
+					s, err := session.New(params)
+					if err != nil {
+						log.Println(err)
+					}
+					transaction_uuid := uuid.New()
+					// create transaction data
+					transaction := &models.Transactions{
+						Id:         transaction_uuid.String(),
+						UserId:     user_id,
+						UserPlanId: IsUser[0].Id,
+						SessionId:  s.ID,
+						PriceId:    price_id,
+						CustomerId: customer_id,
+						Status:     "CHECKOUT",
+						CreatedTs:  time.Now(),
+					}
+					db.DB.Create(&transaction)
+					// update user_plans data (price_id, plan_id, last_modified_ts)
+					new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
+					db.DB.Where("user_id", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
+					// c.JSON(http.StatusOK, gin.H{
+					// 	"checkoutURL": s.URL,
+					// })
+					// return
+					c.Redirect(http.StatusFound, s.URL)
+				}
+
+			}
+			// update user_plans data (price_id, plan_id, last_modified_ts)
 			new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
 			db.DB.Where("user_id", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
 
@@ -99,7 +157,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			}
 			db.DB.Create(&transaction)
 			c.JSON(http.StatusOK, gin.H{
-				"subscription": subscription,
+				// "subscription": subscription,
 			})
 			return
 		}
@@ -187,11 +245,11 @@ func PaymentsCheckoutGet(c *gin.Context) {
 				CreatedTs:  time.Now(),
 			}
 			db.DB.Create(&transaction)
-			c.JSON(http.StatusOK, gin.H{
-				"checkoutURL": s,
-				"customer":    cus,
-			})
-			// c.Redirect(http.StatusFound, s.URL)
+			// c.JSON(http.StatusOK, gin.H{
+			// 	"checkoutURL": s,
+			// 	"customer":    cus,
+			// })
+			c.Redirect(http.StatusFound, s.URL)
 		}
 	}
 

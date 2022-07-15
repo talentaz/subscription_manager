@@ -65,7 +65,7 @@ func PaymentsStripewebhookPost(c *gin.Context) {
 			c.Status(http.StatusBadRequest)
 			return
 		}
-
+		fmt.Fprintf(os.Stdout, "sesssssssssss------- ", session)
 		// Fulfill the purchase...
 		FulfillOrder(session)
 	}
