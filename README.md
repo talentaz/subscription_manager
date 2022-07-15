@@ -134,10 +134,6 @@ If (Record exists?) then (YES)
         :Upgrade/Downgrade 
              Subscription;
       Else (Upgrade from free to paid plan)
-        If (user_plans.customerId empty) then (YES)
-          :Call "Create a customer" API;
-        Else (NO)
-        Endif
         :Create checkout session with the customerId;
         :Create new record in transactions;
         :Return HTTP 302;
@@ -146,6 +142,7 @@ If (Record exists?) then (YES)
     Else (YES)
       :Cancel Current 
         Subscription;
+      :Set user_plans.subscriptionId to null;
     EndIf
     :Create new record in transactions;
     :Update user_plans record 
