@@ -44,7 +44,7 @@ func PaymentsHistoryGet(c *gin.Context) {
 		params := &stripe.PaymentIntentListParams{
 			Customer: stripe.String(customer_id),
 		}
-                //AK At this point we need the entire payment history, not just the 3 most recent ones.
+		//AK At this point we need the entire payment history, not just the 3 most recent ones.
 		//AK params.Filters.AddFilter("limit", "", "3")
 		i := paymentintent.List(params)
 		/**

@@ -65,7 +65,7 @@ func PaymentsStripewebhookPost(c *gin.Context) {
 			c.Status(http.StatusBadRequest)
 			return
 		}
-
+		fmt.Fprintf(os.Stdout, "sesssssssssss------- ", session)
 		// Fulfill the purchase...
 		FulfillOrder(session)
 	}
@@ -77,12 +77,12 @@ func FulfillOrder(session stripe.CheckoutSession) {
 
 	// update transaction data (customerid, status, lastmodified)
 	var transaction []models.Transactions
-	db.DB.Where("session_id", session.ID).Updates(models.Transactions{CustomerId: session.Customer.ID, Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&transaction)
+	db.DB.Where("session_id", session.ID).Updates(models.Transactions{Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&transaction)
 	db.DB.Where("session_id", session.ID).Find(&transaction)
 	user_id := transaction[0].UserPlanId //get user_plan_id in transaction
 
 	// update userplans data (customerid, subscriptionid, status, lastmodified)
 	var userPlans []models.UserPlans
-	db.DB.Where("id", user_id).Updates(models.UserPlans{CustomerId: session.Customer.ID, SubscriptionId: session.Subscription.ID, Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&userPlans)
+	db.DB.Where("id", user_id).Updates(models.UserPlans{SubscriptionId: session.Subscription.ID, Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&userPlans)
 	log.Println("session---------------", session)
 }
