@@ -116,7 +116,7 @@ The following activity diagram provides details around the logic implemented in 
 
 ```plantuml
 start
-:Step 3. After retrieving the stripe key;
+:Retrieving the stripe key;
 :Get user id (GetUserId());
 :Pull record from user_plans 
  with user_id;
@@ -130,13 +130,22 @@ If (Record exists?) then (YES)
       If (price_id == priceId of 
         available plan 
         with price $0?) then (NO)
-      :Upgrade/Downgrade 
-           Subscription;
+      If (user_plans.subscriptionId is empty?) then (NO)
+        :Upgrade/Downgrade 
+             Subscription;
+      Else (Upgrade from free to paid plan)
+        :Create checkout session with the customerId;
+        :Create new record in transactions;
+        :Update user_plans record 
+     (priceId, planId, last_modified_ts);
+        :Return HTTP 302;
+        end
+      Endif
     Else (YES)
       :Cancel Current 
         Subscription;
+      :Set user_plans.subscriptionId to null;
     EndIf
-    
     :Create new record in transactions;
     :Update user_plans record 
      (priceId, planId, last_modified_ts);
@@ -147,14 +156,16 @@ Else (NO - New Subscription)
   :Call "Create a customer" API;
   :Create new record in user_plans 
   (with customerId);
-  :Create new record in transactions;
   If (price_id == priceId of 
       available plan 
       with price $0?) then (NO)
     :Create checkout session with the customerId;
+    :Create new record in transactions;
     :Return HTTP 302;
     end
   Else (YES)
+    :Create new record in transactions
+      without sessionId;
     :Set status to CURRENT for 
     user_plans & transactions records;
     :Return HTTP 200;
