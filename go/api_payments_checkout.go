@@ -132,11 +132,11 @@ func PaymentsCheckoutGet(c *gin.Context) {
 					// update user_plans data (price_id, plan_id, last_modified_ts)
 					new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
 					db.DB.Where("userId", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
-					c.JSON(http.StatusOK, gin.H{
-						"checkoutURL": s.URL,
-					})
-					return
-					// c.Redirect(http.StatusFound, s.URL)
+					// c.JSON(http.StatusOK, gin.H{
+					// 	"checkoutURL": s.URL,
+					// })
+					// return
+					c.Redirect(http.StatusFound, s.URL)
 				}
 
 			}
@@ -245,11 +245,11 @@ func PaymentsCheckoutGet(c *gin.Context) {
 				CreatedTs:  time.Now(),
 			}
 			db.DB.Create(&transaction)
-			c.JSON(http.StatusOK, gin.H{
-				"checkoutURL": s,
-				"customer":    cus,
-			})
-			// c.Redirect(http.StatusFound, s.URL)
+			// c.JSON(http.StatusOK, gin.H{
+			// 	"checkoutURL": s,
+			// 	"customer":    cus,
+			// })
+			c.Redirect(http.StatusFound, s.URL)
 		}
 	}
 
