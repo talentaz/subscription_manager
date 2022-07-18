@@ -77,8 +77,8 @@ func FulfillOrder(session stripe.CheckoutSession) {
 
 	// update transaction data (customerid, status, lastmodified)
 	var transaction []models.Transactions
-	db.DB.Where("session_id", session.ID).Updates(models.Transactions{Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&transaction)
-	db.DB.Where("session_id", session.ID).Find(&transaction)
+	db.DB.Where("sessionId", session.ID).Updates(models.Transactions{Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&transaction)
+	db.DB.Where("sessionId", session.ID).Find(&transaction)
 	user_id := transaction[0].UserPlanId //get user_plan_id in transaction
 
 	// update userplans data (customerid, subscriptionid, status, lastmodified)

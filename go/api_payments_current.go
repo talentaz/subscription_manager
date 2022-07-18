@@ -28,7 +28,7 @@ func PaymentsCurrentGet(c *gin.Context) {
 	}
 	user_id := GetUserId(c) //get user_id
 	var UserPlans []models.UserPlans
-	db.DB.Where("user_id", user_id).Where("status", "CURRENT").Find(&UserPlans)
+	db.DB.Where("userId", user_id).Where("status", "CURRENT").Find(&UserPlans)
 	if len(UserPlans) > 0 {
 		plan_id := UserPlans[0].PlanId
 		var Plan []models.AvailablePlans
