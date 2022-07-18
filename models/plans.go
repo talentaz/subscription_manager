@@ -8,16 +8,16 @@ type AvailablePlans struct {
 	Description string
 	Price       float32
 	Recurrence  int
-	PriceId     string `json:"priceid"`
+	PriceId     string `gorm:"column:priceId"`
 }
 
 type UserPlans struct {
 	Id             string `json:"id"`
-	UserId         string `json:"userid"`
-	PlanId         int
-	CustomerId     string `json:"customerid"`
-	PriceId        string `json:"priceid"`
-	SubscriptionId string `json:"subscriptionid"`
+	UserId         string `gorm:"column:userId"`
+	PlanId         int    `gorm:"column:planId"`
+	CustomerId     string `gorm:"column:customerId"`
+	PriceId        string `gorm:"column:priceId"`
+	SubscriptionId string `gorm:"column:subscriptionId"`
 	Status         string
 	CreatedTs      time.Time
 	LastModifiedTs time.Time

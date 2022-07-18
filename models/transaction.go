@@ -4,11 +4,11 @@ import "time"
 
 type Transactions struct {
 	Id             string `json:"id"`
-	UserId         string `json:"userid"`
-	PriceId        string `json:"priceid"`
-	UserPlanId     string `json:"userpalnid"`
-	SessionId      string `json:"sessionid"`
-	CustomerId     string `json:"customerid"`
+	UserId         string `gorm:"column:userId"`
+	PriceId        string `gorm:"column:priceId"`
+	UserPlanId     string `gorm:"column:userpalnId"`
+	SessionId      string `gorm:"column:sessionId"`
+	CustomerId     string `gorm:"column:customerId"`
 	Status         string
 	CreatedTs      time.Time
 	LastModifiedTs time.Time

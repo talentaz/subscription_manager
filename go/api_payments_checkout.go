@@ -49,10 +49,10 @@ func PaymentsCheckoutGet(c *gin.Context) {
 	user_id := GetUserId(c) //get user_id
 	// check existing user_id
 	var IsUser []models.UserPlans
-	db.DB.Where("user_id", user_id).Find(&IsUser)
+	db.DB.Where("userId", user_id).Find(&IsUser)
 	if len(IsUser) > 0 {
 		//check exsting user_id and price_id
-		db.DB.Where("user_id", user_id).Where("price_id", price_id).Find(&IsUser)
+		db.DB.Where("userId", user_id).Where("priceId", price_id).Find(&IsUser)
 		if len(IsUser) > 0 {
 			/**
 			 * 2. a user attempting to subscribe to the plan that s/he was already subscribed to
@@ -65,9 +65,9 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			/**
 			 * 3.  a user switching to another plan (upgrade/downgrade)
 			 */
-			db.DB.Where("user_id", user_id).Find(&IsUser)
+			db.DB.Where("userId", user_id).Find(&IsUser)
 			var AvailablePlans []models.AvailablePlans
-			db.DB.Where("price_id", price_id).Find(&AvailablePlans)
+			db.DB.Where("priceId", price_id).Find(&AvailablePlans)
 			subscription_id := IsUser[0].SubscriptionId // get subscription_id from user_plans table
 			customer_id := IsUser[0].CustomerId
 			log.Println("subscription id---------", len(subscription_id))
@@ -79,7 +79,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 				subscription, _ := sub.Cancel(subscription_id, nil)
 				log.Println(subscription)
 				// set null of subscription id after cancel subscription
-				db.DB.Where("user_id", user_id).Model(&models.UserPlans{}).Update("subscription_id", gorm.Expr("NULL"))
+				db.DB.Where("userId", user_id).Model(&models.UserPlans{}).Update("subscriptionId", gorm.Expr("NULL"))
 			} else { // change from current plan to other plan (not free plan)
 
 				// check subscription id
@@ -131,18 +131,18 @@ func PaymentsCheckoutGet(c *gin.Context) {
 					db.DB.Create(&transaction)
 					// update user_plans data (price_id, plan_id, last_modified_ts)
 					new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
-					db.DB.Where("user_id", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
-					// c.JSON(http.StatusOK, gin.H{
-					// 	"checkoutURL": s.URL,
-					// })
-					// return
-					c.Redirect(http.StatusFound, s.URL)
+					db.DB.Where("userId", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
+					c.JSON(http.StatusOK, gin.H{
+						"checkoutURL": s.URL,
+					})
+					return
+					// c.Redirect(http.StatusFound, s.URL)
 				}
 
 			}
 			// update user_plans data (price_id, plan_id, last_modified_ts)
 			new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
-			db.DB.Where("user_id", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
+			db.DB.Where("userId", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
 
 			// create new transaction data
 			transaction_uuid := uuid.New()
@@ -175,7 +175,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 		user_uuid := uuid.New()
 		transaction_uuid := uuid.New()
 		var plans []models.AvailablePlans
-		db.DB.Select("id").Where("price_id", price_id).Find(&plans)
+		db.DB.Select("id").Where("priceId", price_id).Find(&plans)
 		plan_id := plans[0].Id
 		userPlans := &models.UserPlans{
 			Id:         user_uuid.String(),
@@ -190,7 +190,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 
 		//check price_id == priceId availavle plan with price 0
 		var AvailablePlans []models.AvailablePlans
-		db.DB.Where("price_id", price_id).Find(&AvailablePlans)
+		db.DB.Where("priceId", price_id).Find(&AvailablePlans)
 		price := AvailablePlans[0].Price
 
 		/**
@@ -209,7 +209,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			}
 			db.DB.Create(&transaction)
 			//update status to CURRENT for user_plans
-			db.DB.Where("price_id", price_id).Updates(models.UserPlans{Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&IsUser)
+			db.DB.Where("priceId", price_id).Updates(models.UserPlans{Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&IsUser)
 			c.JSON(http.StatusOK, gin.H{
 				// "checkoutURL": s,
 				"customer": cus,
@@ -245,11 +245,11 @@ func PaymentsCheckoutGet(c *gin.Context) {
 				CreatedTs:  time.Now(),
 			}
 			db.DB.Create(&transaction)
-			// c.JSON(http.StatusOK, gin.H{
-			// 	"checkoutURL": s,
-			// 	"customer":    cus,
-			// })
-			c.Redirect(http.StatusFound, s.URL)
+			c.JSON(http.StatusOK, gin.H{
+				"checkoutURL": s,
+				"customer":    cus,
+			})
+			// c.Redirect(http.StatusFound, s.URL)
 		}
 	}
 
