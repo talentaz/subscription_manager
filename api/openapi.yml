@@ -60,7 +60,9 @@ paths:
           type: string
       responses:
         "302":
-          description: "Redirects to a stripe checkout page"
+          description: "Redirects to a stripe checkout page when a user subscribes to a premium plan."
+        "200":
+          description: "Redirects to a stripe checkout page when a user subscribes to a free plan."
         "208":
           description: "The user is already subscribed to the provided plan."
   /payments/stripewebhook:
