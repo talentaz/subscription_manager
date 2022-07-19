@@ -13,8 +13,8 @@ Database:
   DBPassword: jw8s0F4
 Stripe:
   StripeAPI: sk_test_51LECU4KUSkDFrC1EovIjSi4jNsHRwz3eT8CggtBRBfPtLORVIMd7Md1sDxDe71lGvO0AR1bMJXO6uNbxDFFru4Yx00dkzMY092
-  CancelURL: https://portal.dev.workspacenow.cloud/settings/billing?checkoutResult=failure
-  SuccessURL: https://portal.dev.workspacenow.cloud/settings/billing?checkoutResult=success
+  CancelURL: https://portal.dev.workspacenow.cloud/settings/plan?checkoutResult=failure
+  SuccessURL: https://portal.dev.workspacenow.cloud/settings/plan?checkoutResult=success
   EndpointSecret: whsec_m1sgiloGkpYemzxcHX8kWHxXgLcMImTX
   
 Security:
