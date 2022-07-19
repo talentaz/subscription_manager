@@ -24,6 +24,7 @@ import (
 	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/stripe/stripe-go/v72/sub"
 	"gorm.io/gorm"
+	"fmt"
 )
 
 func PaymentsCheckoutGet(c *gin.Context) {
@@ -249,6 +250,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			// 	"checkoutURL": s,
 			// 	"customer":    cus,
 			// })
+                        fmt.Fprintf(os.Stdout, "Redirect URL: %s\n", s.URL)
 			c.Redirect(http.StatusFound, s.URL)
 		}
 	}

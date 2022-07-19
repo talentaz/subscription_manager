@@ -45,7 +45,7 @@ func PaymentsStripewebhookPost(c *gin.Context) {
 		c.Status(http.StatusServiceUnavailable)
 		return
 	}
-	fmt.Fprintf(os.Stdout, "Got body: %s\n", body)
+	// fmt.Fprintf(os.Stdout, "Got body: %s\n", body)
 	// Pass the request body and Stripe-Signature header to ConstructEvent, along with the webhook signing key
 	// You can find your endpoint's secret in your webhook settings
 	endpointSecret := config.Stripe.EndpointSecret
