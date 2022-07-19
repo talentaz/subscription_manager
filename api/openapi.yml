@@ -6,6 +6,8 @@ info:
 servers:
   - url: http://localhost/dev/api
     description: Development server
+  - url: https://submgr.dev.workspacenow.cloud/api
+    description: Production Url
 security:
   - oauth: [jhipster, email, profile]
   - openId: [jhipster, email, profile]    
@@ -42,12 +44,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/APlan'
         "404":
-          description: "A user does not have any plan."
+          description: "A user does NOT have a valid plan. The AResult.Code might have one of the following values: 1 - A user has not completed a checkout, APlan.Message includes a redirect URL; 2 - A plan has been found but its status is incorrect."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AResult'
   /payments/checkout:
     get:
       tags:
-      - Payments Checkout
-      summary: Returns an stripe checkout page."
+      - Subscription Checkout
+      summary: Initiates a subscription process.
       parameters:
       - name: "price_id"
         in: "query"
@@ -57,24 +63,14 @@ paths:
         schema:
           type: string
       responses:
-        "302":
-          description: "Redirects to a stripe checkout page"
-        "208":
-          description: "The user is already subscribed to the provided plan."
-  /payments/current:
-    get:
-      tags:
-      - Payments Current
-      summary: Returns an payments current page."
-      responses:
         "200":
-          description: "The response includes a json payload that represents an array of APayment instances."
+          description: "A success code is returned when a user subscribes to a plan. The AResult.Code might have one of the following values: 1 - A user is being sent to a stripe checkout, APlan.Message includes a redirect URL; 2 - A user is successfully subscribed to a free plan; 3 - successfully switched to another plan. "
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APlan'
-        "404":
-          description: "A user does not have any plan."
+                $ref: '#/components/schemas/AResult'
+        "208":
+          description: "The user is already subscribed to the provided plan."
   /payments/stripewebhook:
     post:
       tags:
@@ -96,7 +92,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListOfAPayments'
         "404":
-          description: "A user does not have any plan."
+          description: "A user does not have any payment history."
 components:
   schemas:
     APlan:
@@ -136,10 +132,18 @@ components:
     ListOfAPayments:
       type: object
       properties:
-        plans:
+        payments:
           type: array
           items:
             $ref: '#/components/schemas/APayment'
+    AResult:
+      title: API Result Object used to deliver a result of an API call to the client.
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
   securitySchemes:
     oauth:
       type: oauth2

@@ -77,14 +77,6 @@ var routes = Routes{
 		"/api/payments/checkout",
 		PaymentsCheckoutGet,
 	},
-
-	{
-		"PaymentsCurrentGet",
-		http.MethodGet,
-		"/api/payments/current",
-		PaymentsCurrentGet,
-	},
-
 	{
 		"PaymentsHistoryGet",
 		http.MethodGet,

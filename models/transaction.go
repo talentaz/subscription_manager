@@ -6,7 +6,7 @@ type Transactions struct {
 	Id             string `json:"id"`
 	UserId         string `gorm:"column:userId"`
 	PriceId        string `gorm:"column:priceId"`
-	UserPlanId     string `gorm:"column:userpalnId"`
+	UserPlanId     string `gorm:"column:userplanId"`
 	SessionId      string `gorm:"column:sessionId"`
 	CustomerId     string `gorm:"column:customerId"`
 	Status         string
