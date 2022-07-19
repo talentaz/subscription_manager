@@ -138,6 +138,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 					// 	"checkoutURL": s.URL,
 					// })
 					// return
+                                        fmt.Fprintf(os.Stdout, "Redirect URL: %s\n", s.URL)
 					c.Redirect(http.StatusFound, s.URL)
 				}
 
