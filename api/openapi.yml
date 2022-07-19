@@ -44,7 +44,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/APlan'
         "404":
-          description: "A user does not have any plan."
+          description: "A user does NOT have a valid plan. The AResult.Code might have one of the following values: 1 - A user has not completed a checkout, APlan.Message includes a redirect URL; 2 - A plan has been found but its status is incorrect."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AResult'
   /payments/checkout:
     get:
       tags:
@@ -60,7 +64,7 @@ paths:
           type: string
       responses:
         "200":
-          description: "A success code is returned when a user subscribes to a plan. The AResult.Code might have one of the following values: 1 - A user is being sent to a stripe checkout, APlan.Message includes a redirect URL; 2 - A user is successfully subscribed to a free plan. "
+          description: "A success code is returned when a user subscribes to a plan. The AResult.Code might have one of the following values: 1 - A user is being sent to a stripe checkout, APlan.Message includes a redirect URL; 2 - A user is successfully subscribed to a free plan; 3 - successfully switched to another plan. "
           content:
             application/json:
               schema:
