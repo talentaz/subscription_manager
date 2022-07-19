@@ -48,8 +48,8 @@ paths:
   /payments/checkout:
     get:
       tags:
-      - Payments Checkout
-      summary: Returns an stripe checkout page."
+      - Subscription Checkout
+      summary: Initiates a subscription process.
       parameters:
       - name: "price_id"
         in: "query"
@@ -59,10 +59,12 @@ paths:
         schema:
           type: string
       responses:
-        "302":
-          description: "Redirects to a stripe checkout page when a user subscribes to a premium plan."
         "200":
-          description: "Redirects to a stripe checkout page when a user subscribes to a free plan."
+          description: "A success code is returned when a user subscribes to a plan. The AResult.Code might have one of the following values: 1 - A user is being sent to a stripe checkout, APlan.Message includes a redirect URL; 2 - A user is successfully subscribed to a free plan. "
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AResult'
         "208":
           description: "The user is already subscribed to the provided plan."
   /payments/stripewebhook:
@@ -130,6 +132,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/APayment'
+    AResult:
+      title: API Result Object used to deliver a result of an API call to the client.
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
   securitySchemes:
     oauth:
       type: oauth2

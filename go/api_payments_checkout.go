@@ -24,8 +24,8 @@ import (
 	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/stripe/stripe-go/v72/sub"
 	"gorm.io/gorm"
-	"fmt"
-	"os"
+//	"fmt"
+//	"os"
 )
 
 func PaymentsCheckoutGet(c *gin.Context) {
@@ -134,12 +134,10 @@ func PaymentsCheckoutGet(c *gin.Context) {
 					// update user_plans data (price_id, plan_id, last_modified_ts)
 					new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
 					db.DB.Where("userId", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
-					// c.JSON(http.StatusOK, gin.H{
-					// 	"checkoutURL": s.URL,
-					// })
-					// return
-                                        fmt.Fprintf(os.Stdout, "Redirect URL: %s\n", s.URL)
-					c.Redirect(http.StatusFound, s.URL)
+					c.JSON(http.StatusOK, AResult{Code: 1, Message: s.URL})
+                                        //fmt.Fprintf(os.Stdout, "Redirect URL: %s\n", s.URL)
+					//c.Redirect(http.StatusFound, s.URL)
+					return
 				}
 
 			}
@@ -159,9 +157,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 				CreatedTs:  time.Now(),
 			}
 			db.DB.Create(&transaction)
-			c.JSON(http.StatusOK, gin.H{
-				// "subscription": subscription,
-			})
+			c.JSON(http.StatusOK, AResult{Code: 3, Message: "Successfully switched to another plan."})
 			return
 		}
 	} else {
@@ -213,10 +209,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			db.DB.Create(&transaction)
 			//update status to CURRENT for user_plans
 			db.DB.Where("priceId", price_id).Updates(models.UserPlans{Status: "CURRENT", LastModifiedTs: time.Now()}).Find(&IsUser)
-			c.JSON(http.StatusOK, gin.H{
-				// "checkoutURL": s,
-				"customer": cus,
-			})
+			c.JSON(http.StatusOK, AResult{Code: 2, Message: "A user is successfully subscribed to a free plan."})
 			return
 		} else { //not free plan
 			//create checkout session
@@ -248,12 +241,9 @@ func PaymentsCheckoutGet(c *gin.Context) {
 				CreatedTs:  time.Now(),
 			}
 			db.DB.Create(&transaction)
-			// c.JSON(http.StatusOK, gin.H{
-			// 	"checkoutURL": s,
-			// 	"customer":    cus,
-			// })
-                        fmt.Fprintf(os.Stdout, "Redirect URL: %s\n", s.URL)
-			c.Redirect(http.StatusFound, s.URL)
+                        c.JSON(http.StatusOK, AResult{Code: 1, Message: s.URL})
+                        //fmt.Fprintf(os.Stdout, "Redirect URL: %s\n", s.URL)
+			//c.Redirect(http.StatusFound, s.URL)
 		}
 	}
 
