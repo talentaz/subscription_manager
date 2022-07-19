@@ -82,10 +82,10 @@ func PaymentsCheckoutGet(c *gin.Context) {
 				log.Println(subscription)
 				// set null of subscription id after cancel subscription
 				db.DB.Where("userId", user_id).Model(&models.UserPlans{}).Update("subscriptionId", gorm.Expr("NULL"))
-			} else { // change from current plan to other plan (not free plan)
+			} else { // change from the current plan to a paid plan
 
 				// check subscription id
-				if len(subscription_id) > 0 { // exist subscription id
+				if len(subscription_id) > 0 { // subscription id already exists
 					subscription, err := sub.Get(subscription_id, nil)
 					log.Println("subscription error-------", err)
 					params := &stripe.SubscriptionParams{
@@ -99,7 +99,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 						},
 					}
 					subscription, err = sub.Update(subscription_id, params)
-				} else { // not exist subscriptionId
+				} else { // no existing subscriptionId
 
 					//create checkout session
 					params := &stripe.CheckoutSessionParams{
@@ -133,7 +133,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 					db.DB.Create(&transaction)
 					// update user_plans data (price_id, plan_id, last_modified_ts)
 					new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
-					db.DB.Where("userId", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
+					db.DB.Where("userId", user_id).Updates(models.UserPlans{Status: "CHECKOUT", PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
 					c.JSON(http.StatusOK, AResult{Code: 1, Message: s.URL})
                                         //fmt.Fprintf(os.Stdout, "Redirect URL: %s\n", s.URL)
 					//c.Redirect(http.StatusFound, s.URL)
@@ -143,7 +143,7 @@ func PaymentsCheckoutGet(c *gin.Context) {
 			}
 			// update user_plans data (price_id, plan_id, last_modified_ts)
 			new_plan_id := AvailablePlans[0].Id // get plan id accroding to new price_id
-			db.DB.Where("userId", user_id).Updates(models.UserPlans{PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
+			db.DB.Where("userId", user_id).Updates(models.UserPlans{Status: "CURRENT", PriceId: price_id, PlanId: new_plan_id, LastModifiedTs: time.Now()}).Find(&IsUser)
 
 			// create new transaction data
 			transaction_uuid := uuid.New()
