@@ -19,6 +19,11 @@ import (
 func main() {
 	db.Init()
 	log.Printf("Server started")
+	// Initialize security layer
+	if err := sw.InitAuthenticator(); err != nil {
+		log.Fatal("Failed to initialize security. Exiting...")
+		return
+	}
 
 	router := sw.NewRouter()
 

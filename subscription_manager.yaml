@@ -1,7 +1,31 @@
-  driver: postgres
-  host: dws-dev.c9tezqkfpvxn.us-east-1.rds.amazonaws.com
+Server:
+  host: 127.0.0.1
+  # host: dws-dev.c9tezqkfpvxn.us-east-1.rds.amazonaws.com
   port: 5432
-  DBUsername: submgr
-  DBName: postgres
+Database:
+  driver: postgres
+  DBUsername: postgres
   DBSchema: subscription
-  DBPassword: jw8s0F4
+  DBName: test_sub
+  DBPassword: 1234
+  # DBUsername: submgr
+  # DBName: postgres
+  # DBPassword: jw8s0F4
+Stripe:
+  StripeAPI: sk_test_51LECU4KUSkDFrC1EovIjSi4jNsHRwz3eT8CggtBRBfPtLORVIMd7Md1sDxDe71lGvO0AR1bMJXO6uNbxDFFru4Yx00dkzMY092
+  # StripeAPI: sk_test_51Kd24KI1ALVfJU3i21D0z6g6qhlkrfOJqMM5VbkPfYTBu5PoIaa3j7HaQvkeR75wtKil5k3rIAE5WBafdfXJZb5p00t2meOqwt
+  CancelURL: http://localhost:4242/cancel
+  SuccessURL: http://localhost:4242/success
+  # EndpointSecret: whsec_6809e281fe9a710007f01cad3517f046dd508cd41608d1fbcd4fa8f960ee0264
+  EndpointSecret: whsec_m1sgiloGkpYemzxcHX8kWHxXgLcMImTX
+  
+Security:
+    oauth2:
+        ClientID: platform-dev
+        #ClientSecret: clientSecret
+        #RedirectURLBase: https://dev.workspacenow.cloud
+        ApiRedirectUrl: http://localhost/dev/api/auth_callback
+        WebRedirectUrl: http://localhost/dev/web/auth_callback
+        UrlBase: http://localhost/dev
+        IssuerUrl: https://keycloak.dev.workspacenow.cloud/auth/realms/officekube
+        Scopes: [openid, email, profile]  
